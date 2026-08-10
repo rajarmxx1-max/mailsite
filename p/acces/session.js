@@ -1,35 +1,41 @@
-// Session persistence: users only. Admin is NEVER persisted.
-const USER_SESSION_KEY = "dafzgmail99_user_session_v1";
+const USER_SESSION_KEY = "dafzgmail99_user_session_v3";
 
 function saveUserSession(email) {
-    if (!email || email === "admin") return;
-    localStorage.setItem(USER_SESSION_KEY, email);
+    if (!email) return;
+    localStorage.setItem(USER_SESSION_KEY, String(email).toLowerCase());
 }
 
-function clearUserSession() {
-    localStorage.removeItem(USER_SESSION_KEY);
-}
+function clearUserSession() { localStorage.removeItem(USER_SESSION_KEY); }
 
-function restoreUserSession() {
-    const saved = localStorage.getItem(USER_SESSION_KEY);
-    if (!saved || saved === "admin") {
-        if (saved === "admin") clearUserSession();
-        return false;
+async function restoreUserSession() {
+    if (!auth || !auth.currentUser) return false;
+    try {
+        const firebaseUser = auth.currentUser;
+        const admin = await isAdminFirebaseUser(firebaseUser, true);
+        if (admin) {
+            clearUserSession(); currentUser = 'admin';
+            const panel = document.getElementById('admin-panel-container');
+            if (panel) panel.style.display = 'block';
+            navigateTo('view-beranda'); renderAdminData(); return true;
+        }
+
+        const found = await ensureUserRecord(firebaseUser);
+        if (found && found.isBanned) {
+            clearUserSession(); await auth.signOut(); return false;
+        }
+        currentUser = found.email; saveUserSession(found.email);
+        const panel = document.getElementById('admin-panel-container');
+        if (panel) panel.style.display = 'none';
+        navigateTo('view-beranda'); renderUserProfilData(); return true;
+    } catch (error) {
+        console.error('restoreUserSession:', error); clearUserSession(); return false;
     }
-    const found = getUsers().find(u => u.email === saved);
-    if (!found || found.isBanned) {
-        clearUserSession();
-        return false;
-    }
-    currentUser = found.email;
-    const adminPanel = document.getElementById("admin-panel-container");
-    if (adminPanel) adminPanel.style.display = "none";
-    navigateTo("view-beranda");
-    return true;
 }
 
-function appLogout() {
-    clearUserSession();
-    currentUser = null;
-    navigateTo("view-auth");
+async function appLogout() {
+    clearUserSession(); currentUser = null;
+    try { await auth.signOut(); } catch (e) { console.error(e); }
+    const panel = document.getElementById('admin-panel-container');
+    if (panel) panel.style.display = 'none';
+    navigateTo('view-auth');
 }
