@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PIKJA GMAIL NEWS</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="text/javascript">
+        (function() {
+            emailjs.init("user_example_key_placeholder");
+        })();
+    </script>
+
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+    <header class="app-header">
+        <div class="brand-logo">
+            <i data-lucide="mail" style="width: 18px; height: 18px;"></i> PIKJA GMAIL NEWS
+        </div>
+        <div class="header-links" id="header-social-container"></div>
+    </header>
+
+    <!-- MODAL GOOGLE SIGN-IN -->
+    <div id="google-modal" class="custom-modal">
+        <div class="modal-box">
+            <div style="text-align: center; margin-bottom: 16px;">
+                <svg style="width: 32px; height: 32px; margin-bottom: 6px;" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.13 0-5.78-2.11-6.73-4.96H1.19v3.15C3.17 21.31 7.26 24 12 24z"/><path fill="#FBBC05" d="M5.27 14.24c-.25-.72-.38-1.49-.38-2.24s.13-1.52.38-2.24V6.6H1.19C.43 8.13 0 9.87 0 12s.43 3.87 1.19 5.4l4.08-3.16z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.26 0 3.17 2.69 1.19 6.6l4.08 3.15c.95-2.85 3.6-4.96 6.73-4.96z"/></svg>
+                <h3 style="font-size: 1.1rem; font-weight: 700;">Masuk dengan Google</h3>
+                <p style="font-size: 0.78rem; color: var(--text-sub); margin-top: 2px;">Gunakan Tombol Resmi Akun Google Anda</p>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 10px; align-items: center; margin-bottom: 16px;">
+                <div id="g_id_onload"
+                     data-client_id="42190916488-3sldkuhdek79orgmqssb3l0gv2nnuupp.apps.googleusercontent.com"
+                     data-callback="handleCredentialResponse"
+                     data-auto_prompt="false">
+                </div>
+                <div class="g_id_signin" 
+                     data-type="standard" 
+                     data-shape="rectangular" 
+                     data-theme="outline" 
+                     data-text="sign_in_with" 
+                     data-size="large" 
+                     data-logo_alignment="left">
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 8px; margin-top: 16px;">
+                <button type="button" class="btn-google" style="margin-top: 0; background: #f1f5f9; color: #64748b;" onclick="closeGoogleModal()">Batal</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL VERIFIKASI KODE OTP EMAIL ASLI -->
+    <div id="otp-modal" class="custom-modal">
+        <div class="modal-box">
+            <div style="text-align: center; margin-bottom: 16px;">
+                <div style="width: 50px; height: 50px; background: var(--primary-light); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px auto;">
+                    <i data-lucide="shield-check" style="width: 24px; height: 24px;"></i>
+                </div>
+                <h3 style="font-size: 1.1rem; font-weight: 700;">Verifikasi Email Asli</h3>
+                <p style="font-size: 0.78rem; color: var(--text-sub); margin-top: 4px;">Kode verifikasi 6 digit telah dikirim ke email <strong id="otp-target-email" style="color: var(--primary);"></strong>. Cek inbox/spam Anda.</p>
+            </div>
+            
+            <div class="input-group">
+                <label>Masukkan Kode Verifikasi</label>
+                <input type="text" id="otp-input-code" class="form-input" placeholder="Contoh: 482910" maxlength="6" style="text-align: center; letter-spacing: 4px; font-weight: bold; font-size: 1.1rem;">
+            </div>
+
+            <button type="button" class="btn-primary" onclick="verifyEmailOtpCode()">Konfirmasi & Daftar</button>
+            <button type="button" class="btn-google" style="margin-top: 8px; background: #f1f5f9; color: #64748b;" onclick="closeOtpModal()">Batal</button>
+        </div>
+    </div>
+
+    <!-- 1. VIEW AUTHENTICATION -->
+    <div id="view-auth" class="view-section active-view">
+        <div style="text-align: center; margin-top: 30px;">
+            <div style="width: 64px; height: 64px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px auto; box-shadow: 0 4px 12px rgba(37,99,235,0.3);">
+                <i data-lucide="mail" style="width: 32px; height: 32px;"></i>
+            </div>
+            <h2 style="color: var(--primary); font-weight: 800; font-size: 1.4rem;">PIKJA GMAIL NEWS</h2>
+        </div>
+
+        <div class="auth-card">
+            <div class="auth-tabs">
+                <div class="auth-tab-btn active" id="tab-login" onclick="switchAuth('login')">Masuk</div>
+                <div class="auth-tab-btn" id="tab-register" onclick="switchAuth('register')">Daftar</div>
+            </div>
+
+            <form id="form-auth-login" onsubmit="event.preventDefault(); processLogin();">
+                <div class="input-group">
+                    <label>Email / Username</label>
+                    <input type="text" id="login-email" class="form-input" placeholder="Masukkan email atau username" required>
+                </div>
+                <div class="input-group">
+                    <label>Password</label>
+                    <input type="password" id="login-pass" class="form-input" placeholder="Masukkan password" required>
+                </div>
+                <button type="submit" class="btn-primary" style="margin-top: 10px;">Masuk</button>
+                <button type="button" class="btn-google" onclick="openGoogleModal()">
+                    <svg style="width: 18px; height: 18px;" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.13 0-5.78-2.11-6.73-4.96H1.19v3.15C3.17 21.31 7.26 24 12 24z"/><path fill="#FBBC05" d="M5.27 14.24c-.25-.72-.38-1.49-.38-2.24s.13-1.52.38-2.24V6.6H1.19C.43 8.13 0 9.87 0 12s.43 3.87 1.19 5.4l4.08-3.16z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.26 0 3.17 2.69 1.19 6.6l4.08 3.15c.95-2.85 3.6-4.96 6.73-4.96z"/></svg>
+                    Masuk dengan Google
+                </button>
+            </form>
+
+            <form id="form-auth-reg" style="display: none;" onsubmit="event.preventDefault(); initiateRegisterVerification();">
+                <div class="input-group">
+                    <label>Nama Lengkap</label>
+                    <input type="text" id="reg-name" class="form-input" placeholder="Nama Anda" required>
+                </div>
+                <div class="input-group">
+                    <label>Email (Wajib Berakhiran @gmail.com Asli & Aktif)</label>
+                    <input type="email" id="reg-email" class="form-input" placeholder="nama@gmail.com" required>
+                </div>
+                <div class="input-group">
+                    <label>Password</label>
+                    <input type="password" id="reg-pass" class="form-input" placeholder="Minimal 6 karakter" required>
+                </div>
+                <button type="submit" id="btn-submit-reg" class="btn-primary" style="margin-top: 10px;">Kirim Verifikasi Email</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 2. VIEW BERANDA -->
+    <div id="view-beranda" class="view-section">
+        <div class="card-saldo">
+            <div class="label"><i data-lucide="wallet" style="width: 14px; height: 14px; vertical-align: middle;"></i> SALDO ANDA</div>
+            <div class="amount" id="dash-balance">Rp0</div>
+            <div class="subtext">Harga / Gmail: <strong id="display-harga">Rp4.700</strong></div>
+            <div class="saldo-actions">
+                <button class="btn-saldo-action" onclick="navigateTo('view-saldo')">
+                    <i data-lucide="download" style="width: 14px; height: 14px;"></i> Tarik Saldo
+                </button>
+                <button class="btn-saldo-action" onclick="navigateTo('view-riwayat')">
+                    <i data-lucide="history" style="width: 14px; height: 14px;"></i> Riwayat
+                </button>
+            </div>
+        </div>
+
+        <div class="shortcut-grid">
+            <div class="shortcut-item" onclick="navigateTo('view-rules')">
+                <div class="shortcut-icon" style="background: #2563eb;"><i data-lucide="send" style="width: 20px;"></i></div>
+                <span class="shortcut-label">Stor</span>
+            </div>
+            <div class="shortcut-item" onclick="bukaCheckGmailExternal()">
+                <div class="shortcut-icon" style="background: #10b981;"><i data-lucide="shield-check" style="width: 20px;"></i></div>
+                <span class="shortcut-label">Cek Gmail</span>
+            </div>
+            <div class="shortcut-item" onclick="navigateTo('view-chat')">
+                <div class="shortcut-icon" style="background: #8b5cf6;"><i data-lucide="bot" style="width: 20px;"></i></div>
+                <span class="shortcut-label">Admin AI</span>
+            </div>
+            <div class="shortcut-item" onclick="navigateTo('view-saldo')">
+                <div class="shortcut-icon" style="background: #f59e0b;"><i data-lucide="wallet" style="width: 20px;"></i></div>
+                <span class="shortcut-label">Saldo</span>
+            </div>
+        </div>
+
+        <div class="status-grid">
+            <div class="status-card">
+                <i data-lucide="check-circle-2" style="color: var(--success);"></i>
+                <div>
+                    <div class="sub">DITERIMA</div>
+                    <div class="val" id="stat-diterima">0</div>
+                </div>
+            </div>
+            <div class="status-card">
+                <i data-lucide="clock" style="color: var(--warning);"></i>
+                <div>
+                    <div class="sub">PENDING</div>
+                    <div class="val" id="stat-pending">0</div>
+                </div>
+            </div>
+            <div class="status-card">
+                <i data-lucide="x-circle" style="color: var(--danger);"></i>
+                <div>
+                    <div class="sub">DITOLAK</div>
+                    <div class="val" id="stat-ditolak">0</div>
+                </div>
+            </div>
+            <div class="status-card">
+                <i data-lucide="tag" style="color: var(--primary);"></i>
+                <div>
+                    <div class="sub">HARGA</div>
+                    <div class="val" id="dash-harga-card">Rp4.700</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-box-card" style="cursor: pointer; background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%); border-color: #ddd6fe;" onclick="navigateTo('view-chat')">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="width: 40px; height: 40px; background: #8b5cf6; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <i data-lucide="bot" style="width: 20px;"></i>
+                </div>
+                <div>
+                    <strong style="font-size: 0.88rem; color: #6d28d9; display: block;">Ada Kendala Saat Stor? Chat Admin AI</strong>
+                    <span style="font-size: 0.75rem; color: #7c3aed;">Tanya seputar verifikasi, saldo ditolak, atau format password otomatis.</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. VIEW RULES -->
+    <div id="view-rules" class="view-section">
+        <div style="background: var(--primary); color: white; padding: 14px; border-radius: var(--radius-md); font-weight: 700; text-align: center; margin-bottom: 14px; font-size: 0.9rem;">
+            Rules Setoran
+        </div>
+        <div class="rules-container" id="display-rules-content"></div>
+        <button class="btn-primary" style="margin-top: 15px;" onclick="navigateTo('view-setor')">
+            Saya paham, lanjut setor
+        </button>
+    </div>
+
+    <!-- 4. VIEW SETOR -->
+    <div id="view-setor" class="view-section">
+        <h3 style="font-weight: 800; margin-bottom: 4px;">Setor Daftar Gmail</h3>
+        <p style="font-size: 0.8rem; color: var(--text-sub); margin-bottom: 14px;">Tempel daftar dengan format: <code style="background:#f1f5f9; padding:2px 4px; border-radius:4px;">email@gmail.com|password</code> (Satu Gmail per baris).</p>
+
+        <div style="margin-bottom: 14px;">
+            <button type="button" class="btn-primary" style="background: #10b981; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="bukaCheckGmailExternal()">
+                <i data-lucide="external-link" style="width: 18px; height: 18px;"></i> Cek Status Gmail (checkgmail.online)
+            </button>
+        </div>
+
+        <div id="storan-status-alert"></div>
+
+        <div class="notice-box notice-blue" id="display-notice-blue">
+            <i data-lucide="info" style="width: 18px; flex-shrink: 0;"></i>
+            <div id="notice-blue-text"></div>
+        </div>
+
+        <div class="notice-box notice-yellow" id="display-notice-yellow">
+            <i data-lucide="key" style="width: 18px; flex-shrink: 0;"></i>
+            <div id="notice-yellow-text"></div>
+        </div>
+
+        <div class="info-box-card" style="padding: 10px;">
+            <textarea id="setor-input" class="form-input" style="height: 120px; font-family: monospace; font-size: 0.85rem; resize: none;" placeholder="email1@gmail.com|sgsg1122" oninput="countLines()"></textarea>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+                <span style="font-size: 0.75rem; color: var(--text-sub);">Total: <strong id="line-count">0</strong> baris</span>
+                <button class="btn-primary" id="btn-kirim-storan" style="width: auto; padding: 8px 18px;" onclick="processSetor()">Kirim Storan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. VIEW RIWAYAT -->
+    <div id="view-riwayat" class="view-section">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <h3 style="font-weight: 800;">Riwayat Storan Anda</h3>
+            <button class="btn-primary" style="width: auto; padding: 6px 12px; font-size: 0.75rem; background: var(--success); display: flex; align-items: center; gap: 4px;" onclick="copyAllRiwayatGmail()">
+                <i data-lucide="copy" style="width: 14px; height: 14px;"></i> Salin Semua Gmail
+            </button>
+        </div>
+        <div id="riwayat-list-container">
+            <div class="info-box-card" style="text-align: center; color: var(--text-sub); padding: 30px 10px;">
+                Belum ada setoran.
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. VIEW SALDO & TARIK DANA -->
+    <div id="view-saldo" class="view-section">
+        <div class="wallet-card-estetik">
+            <div class="top-info">
+                <span class="label"><i data-lucide="shield-check" style="width: 14px; vertical-align: middle;"></i> Saldo Dompet Utama</span>
+                <i data-lucide="wallet" style="width: 24px; opacity: 0.8;"></i>
+            </div>
+            <div class="amount" id="user-saldo-display">Rp0</div>
+            <div class="subtext">Dapat dicairkan sesuai pendapatan. Minimal pencairan <strong>Rp10.000</strong>.</div>
+        </div>
+
+        <div class="info-box-card">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; font-weight: 700; font-size: 0.9rem;">
+                <i data-lucide="credit-card" style="width: 18px; color: var(--primary);"></i>
+                <span>Form Pencairan Dana</span>
+            </div>
+
+            <div class="input-group" style="margin-bottom: 12px;">
+                <label>Pilih Metode E-Wallet</label>
+                <div class="wallet-provider-grid">
+                    <div class="provider-btn active" id="btn-wallet-dana" onclick="selectWalletProvider('DANA')">
+                        <i data-lucide="smartphone" style="width: 20px; height: 20px;"></i>
+                        <span class="provider-name">DANA</span>
+                    </div>
+                    <div class="provider-btn" id="btn-wallet-ovo" onclick="selectWalletProvider('OVO')">
+                        <i data-lucide="smartphone" style="width: 20px; height: 20px;"></i>
+                        <span class="provider-name">OVO</span>
+                    </div>
+                    <div class="provider-btn" id="btn-wallet-gopay" onclick="selectWalletProvider('GoPay')">
+                        <i data-lucide="smartphone" style="width: 20px; height: 20px;"></i>
+                        <span class="provider-name">GoPay</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label id="label-nomor-tujuan">Nomor Akun DANA</label>
+                <input type="text" id="user-dana-input" class="form-input" placeholder="Contoh: 081234567890">
+            </div>
+
+            <div class="input-group">
+                <label>Nominal Penarikan (Rp)</label>
+                <input type="number" id="user-nominal-input" class="form-input" placeholder="Min. 10000">
+            </div>
+
+            <button class="btn-primary" style="margin-top: 6px;" onclick="processTarikDana()">
+                <i data-lucide="send" style="width: 16px; vertical-align: middle; margin-right: 4px;"></i> Ajukan Penarikan Dana
+            </button>
+        </div>
+
+        <div class="info-box-card">
+            <div style="font-weight: 700; font-size: 0.85rem; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                <i data-lucide="clock" style="width: 16px; color: var(--text-sub);"></i> Riwayat Penarikan Terakhir
+            </div>
+            <div id="riwayat-penarikan-list" style="font-size: 0.78rem; color: var(--text-sub);">
+                Belum ada pengajuan penarikan dana.
+            </div>
+        </div>
+    </div>
+
+    <!-- ADMIN AI CHAT -->
+    <div id="view-chat" class="view-section">
+        <div class="chat-container">
+            <div class="chat-header-bar">
+                <i data-lucide="bot" style="width: 20px;"></i>
+                <div>
+                    <div style="font-size: 0.88rem;">Admin AI Support</div>
+                    <div style="font-size: 0.68rem; opacity: 0.85; font-weight: 400;">Online 24 Jam - Siap bantu kendala storan</div>
+                </div>
+            </div>
+            <div class="chat-messages" id="chat-messages-box">
+                <div class="chat-bubble ai">
+                    Halo! Saya Admin AI PIKJA GMAIL NEWS. Ada kendala saat stor Gmail, saldo belum masuk, atau bingung format password-nya? Silakan tanyakan di sini ya! 😊
+                </div>
+            </div>
+            <div class="chat-quick-suggestions">
+                <span class="suggestion-chip" onclick="sendSuggestion('Kenapa storan saya ditolak?')">Kenapa ditolak?</span>
+                <span class="suggestion-chip" onclick="sendSuggestion('Berapa minimal tarik saldo?')">Minimal tarik saldo?</span>
+                <span class="suggestion-chip" onclick="sendSuggestion('Apa password wajibnya?')">Password wajib?</span>
+                <span class="suggestion-chip" onclick="sendSuggestion('Kapan saldo masuk?')">Kapan saldo masuk?</span>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" id="chat-input-field" class="form-input" placeholder="Ketik keluhan atau pertanyaan..." onkeypress="if(event.key === 'Enter') sendUserChatMessage()">
+                <button class="btn-primary" style="width: auto; padding: 0 16px;" onclick="sendUserChatMessage()">
+                    <i data-lucide="send" style="width: 16px;"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 7. VIEW PROFIL -->
+    <div id="view-profil" class="view-section">
+        <div class="profile-glow-card">
+            <div class="profile-avatar-glow">
+                <i data-lucide="user" style="width: 36px; height: 36px;"></i>
+            </div>
+            <strong id="profil-nama" style="font-size: 1.15rem; display: block; font-weight: 800;">User</strong>
+            <span id="profil-email" style="font-size: 0.8rem; display: block; margin-top: 2px;">-</span>
+            <div style="display: flex; gap: 8px; justify-content: center; margin-top: 18px;">
+                <button class="btn-primary" style="padding: 8px 20px; font-size: 0.8rem; width: auto; background: #ffffff; color: #ef4444 !important; font-weight: 800; border: none; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);" onclick="appLogout();">Logout</button>
+            </div>
+        </div>
+
+        <div class="info-box-card" style="display: flex; gap: 10px; margin-top: 12px;" id="profil-social-container"></div>
+
+        <!-- PANEL ADMIN -->
+        <div id="admin-panel-container" style="display: none;">
+            <div class="info-box-card" style="border: 2px dashed var(--primary); margin-top: 16px;">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; color: var(--primary);">
+                    <i data-lucide="settings" style="width: 18px;"></i>
+                    <strong style="font-size: 0.9rem;">Panel Kontrol Admin (Pengaturan Realtime & Rules)</strong>
+                </div>
+
+                <div class="input-group">
+                    <label>Status Storan</label>
+                    <select id="admin-status-storan" class="form-select" onchange="saveAdminSettings()">
+                        <option value="buka">Buka (Normal)</option>
+                        <option value="tutup">Tutup (Sistem Tutup Sementara)</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label>Harga per Gmail (Rp)</label>
+                    <input type="text" id="admin-harga" class="form-input" value="Rp4.700" oninput="saveAdminSettings()">
+                </div>
+
+                <div class="input-group">
+                    <label>Link Saluran Telegram</label>
+                    <input type="text" id="admin-link-tele" class="form-input" placeholder="https://t.me/..." oninput="saveAdminSettings()">
+                </div>
+
+                <div class="input-group">
+                    <label>Link Channel WhatsApp</label>
+                    <input type="text" id="admin-link-wa-channel" class="form-input" placeholder="https://whatsapp.com/channel/..." oninput="saveAdminSettings()">
+                </div>
+
+                <div class="input-group">
+                    <label>Nomor WhatsApp Pribadi</label>
+                    <input type="text" id="admin-nomor-wa" class="form-input" placeholder="628xxxxxxxxxx" oninput="saveAdminSettings()">
+                </div>
+
+                <div class="input-group">
+                    <label>Pesan Peringatan saat Tutup</label>
+                    <input type="text" id="admin-pesan-tutup" class="form-input" value="Storan sedang ditutup sementara oleh Admin." oninput="saveAdminSettings()">
+                </div>
+
+                <div class="input-group">
+                    <label>Edit Teks Rules / Aturan</label>
+                    <textarea id="admin-rules-input" class="form-input" style="height: 80px; font-size: 0.8rem;" oninput="saveAdminSettings()"></textarea>
+                </div>
+
+                <div class="input-group">
+                    <label>Edit Peringatan Biru</label>
+                    <textarea id="admin-notice-blue" class="form-input" style="height: 70px; font-size: 0.8rem;" oninput="saveAdminSettings()"></textarea>
+                </div>
+
+                <div class="input-group">
+                    <label>Edit Peringatan Kuning (Password Wajib)</label>
+                    <textarea id="admin-notice-yellow" class="form-input" style="height: 70px; font-size: 0.8rem;" oninput="saveAdminSettings()"></textarea>
+                </div>
+            </div>
+
+            <!-- KELOLA PENARIKAN DANA -->
+            <div class="info-box-card" style="margin-top: 16px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; color: var(--primary);">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="credit-card" style="width: 18px;"></i>
+                        <strong style="font-size: 0.9rem;">Kelola & Bersihkan Permintaan Tarik Saldo Ngasal</strong>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 12px;">
+                    <button type="button" class="btn-primary" style="background: #ef4444; font-size: 0.78rem; padding: 8px; display: flex; align-items: center; justify-content: center; gap: 6px;" onclick="autoCleanNgasalWithdrawals()">
+                        <i data-lucide="shield-alert" style="width: 16px; height: 16px;"></i> Bersihkan Otomatis WD Ngasal / Melebihi Saldo
+                    </button>
+                </div>
+
+                <div style="max-height: 220px; overflow-y: auto;">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Metode & Tujuan</th>
+                                <th>Nominal</th>
+                                <th>Status</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-tarik-list-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- KELOLA USER -->
+            <div class="info-box-card" style="margin-top: 16px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; color: var(--primary);">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="users" style="width: 18px;"></i>
+                        <strong style="font-size: 0.9rem;">Daftar Akun & Referral (<span id="total-user-count">0</span> Orang)</strong>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 12px; display: flex; gap: 8px;">
+                    <button type="button" class="btn-primary" style="background: #f59e0b; font-size: 0.78rem; padding: 8px; flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;" onclick="autoCleanDuplicateIpUsers()">
+                        <i data-lucide="shield-alert" style="width: 16px; height: 16px;"></i> Blokir IP Kembar
+                    </button>
+                    <button type="button" class="btn-primary" style="background: #ef4444; font-size: 0.78rem; padding: 8px; flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;" onclick="autoDeleteAllNgasalUsers()">
+                        <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i> Hapus Semua Akun Ngasal
+                    </button>
+                </div>
+
+                <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                    <input type="text" id="searchUser" placeholder="Cari nama atau email user..." onkeyup="filterUser()" style="flex: 2; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.82rem; outline: none;">
+                    <select id="filterStatusNuyul" onchange="filterUser()" style="flex: 1; padding: 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.78rem; outline: none; background: white;">
+                        <option value="all">Semua Status</option>
+                        <option value="asli">Referral Asli</option>
+                        <option value="nuyul">🚨 Indikasi Nuyul</option>
+                        <option value="ip_ganda">🌐 IP Kembar / Ganda</option>
+                    </select>
+                </div>
+
+                <div style="max-height: 220px; overflow-y: auto;">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Nama & Status</th>
+                                <th>Email</th>
+                                <th>IP Address</th>
+                                <th>Saldo & Referral</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-user-list-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- KELOLA STORAN GMAIL MEMBER -->
+            <div class="info-box-card" style="margin-top: 16px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; color: var(--primary);">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="database" style="width: 18px;"></i>
+                        <strong style="font-size: 0.9rem;">Kelola Storan Gmail Member</strong>
+                    </div>
+                </div>
+                <div style="max-height: 220px; overflow-y: auto;">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Gmail | Password</th>
+                                <th>Status</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-storan-list-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 8. VIEW REFERRAL -->
+    <div id="view-referral" class="view-section">
+        <div class="info-box-card" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-color: #bfdbfe;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; color: var(--primary);">
+                <i data-lucide="share-2" style="width: 20px;"></i>
+                <strong style="font-size: 0.95rem;">Program Referral & Anti-Nuyul</strong>
+            </div>
+            <p style="font-size: 0.78rem; color: var(--text-main); line-height: 1.4; margin-bottom: 10px;">
+                Halaman ini khusus memantau tautan undangan dan bonus referral Anda secara terpisah dari data storan Gmail.
+            </p>
+            <div class="input-group" style="margin-bottom: 8px;">
+                <label style="font-size: 0.75rem;">Link Referral Khusus Anda</label>
+                <input type="text" id="profil-referral-link" class="form-input" readonly style="font-size: 0.78rem; background: #ffffff;">
+            </div>
+            <button class="btn-primary" style="font-size: 0.8rem; padding: 8px;" onclick="copyReferralLink()">
+                <i data-lucide="copy" style="width: 14px; vertical-align: middle; margin-right: 4px;"></i> Salin Link Referral
+            </button>
+        </div>
+
+        <div class="info-box-card">
+            <div style="font-weight: 700; font-size: 0.85rem; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                <i data-lucide="shield-alert" style="width: 16px; color: var(--warning);"></i> Statistik & Keamanan Referral
+            </div>
+            <p style="font-size: 0.76rem; color: var(--text-sub); line-height: 1.4;">
+                • Bonus: <strong>Rp5.000</strong> per undang teman aktif.<br>
+                • Sistem otomatis mendeteksi kecurangan (nuyul / self-referral / IP ganda).
+            </p>
+        </div>
+    </div>
+
+    <!-- BOTTOM NAVIGATION BAR -->
+    <nav class="bottom-nav">
+        <button class="nav-item active" onclick="navigateTo('view-beranda')">
+            <i data-lucide="home" style="width: 18px; height: 18px;"></i>
+            <span>Beranda</span>
+        </button>
+        <button class="nav-item" onclick="navigateTo('view-riwayat')">
+            <i data-lucide="history" style="width: 18px; height: 18px;"></i>
+            <span>Riwayat</span>
+        </button>
+        <button class="nav-item" onclick="navigateTo('view-chat')">
+            <div class="nav-fab" style="background: #8b5cf6; box-shadow: 0 4px 10px rgba(139, 92, 246, 0.4);">
+                <i data-lucide="bot" style="width: 18px; height: 18px;"></i>
+            </div>
+            <span style="margin-top: 16px;">Admin AI</span>
+        </button>
+        <button class="nav-item" onclick="navigateTo('view-referral')">
+            <i data-lucide="share-2" style="width: 18px; height: 18px;"></i>
+            <span>Referral</span>
+        </button>
+        <button class="nav-item" onclick="navigateTo('view-profil')">
+            <i data-lucide="user" style="width: 18px; height: 18px;"></i>
+            <span>Profil</span>
+        </button>
+    </nav>
+
+    <!-- JS ENGINE DENGAN PENGECEKAN FORMAT RULES SEBELUM PROSES -->
+    
+
+    <script src="./session.js"></script>
+    <script src="./app-core.js"></script>
+    <script src="./auth.js"></script>
+    <script src="./transactions.js"></script>
+</body>
+</html>
