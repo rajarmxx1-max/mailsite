@@ -1,449 +1,21 @@
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>DAFZGMAIL99</title>
-    
-    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-
-    <!-- Firebase SDK (Compat Version untuk kemudahan integrasi script) -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="text/javascript">
+        (function() {
+            emailjs.init("user_example_key_placeholder");
+        })();
+    </script>
 
-    <style>
-        :root {
-            --primary: #2563eb;
-            --primary-dark: #1d4ed8;
-            --primary-light: #eff6ff;
-            --bg-body: #f8fafc;
-            --surface: #ffffff;
-            --text-main: #0f172a;
-            --text-sub: #64748b;
-            --border: #e2e8f0;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-            --radius-lg: 16px;
-            --radius-md: 12px;
-            --radius-sm: 8px;
-            --shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
-        }
-
-        *, *::before, *::after {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        body {
-            background-color: var(--bg-body);
-            color: var(--text-main);
-            min-height: 100vh;
-            max-width: 480px;
-            margin: 0 auto;
-            position: relative;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.08);
-            padding-bottom: 90px;
-        }
-
-        .app-header {
-            background: var(--surface);
-            padding: 12px 16px;
-            display: none;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border);
-            position: sticky;
-            top: 0;
-            z-index: 50;
-        }
-
-        .app-header.active-nav {
-            display: flex;
-        }
-
-        .brand-logo {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-weight: 800;
-            font-size: 1rem;
-            color: var(--primary);
-        }
-
-        .header-links {
-            display: flex;
-            gap: 6px;
-        }
-
-        .btn-social-header {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            background: #ffffff;
-            color: #334155;
-            text-decoration: none;
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 0.72rem;
-            font-weight: 600;
-            border: 1px solid var(--border);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-
-        .view-section {
-            display: none;
-            padding: 16px;
-            animation: fadeIn 0.25s ease-in-out;
-        }
-
-        .view-section.active-view {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(6px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .auth-card {
-            background: var(--surface);
-            border-radius: var(--radius-lg);
-            padding: 24px 20px;
-            box-shadow: var(--shadow);
-            margin-top: 20px;
-            border: 1px solid var(--border);
-        }
-
-        .auth-tabs {
-            display: flex;
-            background: #f1f5f9;
-            padding: 4px;
-            border-radius: var(--radius-md);
-            margin-bottom: 20px;
-        }
-
-        .auth-tab-btn {
-            flex: 1;
-            text-align: center;
-            padding: 8px 0;
-            font-size: 0.85rem;
-            font-weight: 600;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            color: var(--text-sub);
-        }
-
-        .auth-tab-btn.active {
-            background: var(--surface);
-            color: var(--text-main);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-
-        .input-group {
-            margin-bottom: 14px;
-        }
-
-        .input-group label {
-            display: block;
-            font-size: 0.8rem;
-            font-weight: 600;
-            margin-bottom: 6px;
-            color: var(--text-sub);
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 11px 14px;
-            border: 1px solid var(--border);
-            border-radius: var(--radius-md);
-            font-size: 0.9rem;
-            outline: none;
-            background: #ffffff;
-            color: var(--text-main);
-            transition: border-color 0.2s;
-        }
-
-        .form-input:focus {
-            border-color: var(--primary);
-        }
-
-        .form-select {
-            width: 100%;
-            padding: 11px 14px;
-            border: 1px solid var(--border);
-            border-radius: var(--radius-md);
-            font-size: 0.9rem;
-            outline: none;
-            background: white;
-            color: var(--text-main);
-        }
-
-        .btn-primary {
-            width: 100%;
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 12px;
-            border-radius: var(--radius-md);
-            font-size: 0.9rem;
-            font-weight: 700;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-            text-align: center;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
-            transition: background 0.2s;
-        }
-        .btn-primary:active {
-            transform: scale(0.98);
-        }
-
-        .btn-google {
-            width: 100%;
-            background: #ffffff;
-            color: #334155;
-            border: 1px solid var(--border);
-            padding: 11px;
-            border-radius: var(--radius-md);
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 10px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-        }
-
-        .custom-modal {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            padding: 20px;
-            backdrop-filter: blur(4px);
-        }
-        .custom-modal.active {
-            display: flex;
-        }
-        .modal-box {
-            background: var(--surface);
-            width: 100%;
-            max-width: 360px;
-            padding: 24px;
-            border-radius: var(--radius-lg);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-            animation: scaleUp 0.2s ease-in-out;
-        }
-        @keyframes scaleUp {
-            from { transform: scale(0.9); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
-
-        .wallet-card-estetik {
-            background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #3b82f6 100%);
-            color: white;
-            padding: 24px;
-            border-radius: var(--radius-lg);
-            margin-bottom: 16px;
-            box-shadow: 0 10px 25px rgba(37, 99, 235, 0.3);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .wallet-card-estetik::before {
-            content: '';
-            position: absolute;
-            top: -50px; right: -50px;
-            width: 140px; height: 140px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            pointer-events: none;
-        }
-
-        .wallet-card-estetik .top-info {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-
-        .wallet-card-estetik .label {
-            font-size: 0.72rem;
-            letter-spacing: 1px;
-            opacity: 0.85;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
-
-        .wallet-card-estetik .amount {
-            font-size: 2.2rem;
-            font-weight: 800;
-            letter-spacing: -0.5px;
-            margin-bottom: 6px;
-        }
-
-        .wallet-card-estetik .subtext {
-            font-size: 0.78rem;
-            opacity: 0.9;
-        }
-
-        .info-box-card {
-            background: var(--surface);
-            border-radius: var(--radius-lg);
-            padding: 16px;
-            border: 1px solid var(--border);
-            margin-bottom: 14px;
-            box-shadow: var(--shadow);
-        }
-
-        .wallet-provider-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin-bottom: 14px;
-        }
-
-        .provider-btn {
-            background: #f8fafc;
-            border: 2px solid var(--border);
-            border-radius: var(--radius-md);
-            padding: 12px 8px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .provider-btn.active {
-            background: var(--primary-light);
-            border-color: var(--primary);
-            color: var(--primary);
-            font-weight: 700;
-        }
-
-        .provider-btn img, .provider-btn i {
-            display: block;
-            margin: 0 auto 4px auto;
-        }
-
-        .provider-name {
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        .card-saldo {
-            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-            color: white;
-            padding: 20px;
-            border-radius: var(--radius-lg);
-            margin-bottom: 16px;
-            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.25);
-        }
-        .card-saldo .label { font-size: 0.75rem; opacity: 0.9; font-weight: 700; }
-        .card-saldo .amount { font-size: 2.2rem; font-weight: 800; margin: 4px 0; }
-        .card-saldo .subtext { font-size: 0.8rem; opacity: 0.9; margin-bottom: 14px; }
-        .saldo-actions { display: flex; gap: 10px; }
-        .btn-saldo-action {
-            flex: 1; background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white; padding: 8px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;
-            display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; backdrop-filter: blur(4px);
-        }
-
-        .shortcut-grid {
-            display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
-            background: var(--surface); padding: 16px 12px; border-radius: var(--radius-lg);
-            border: 1px solid var(--border); margin-bottom: 16px; box-shadow: var(--shadow);
-        }
-        .shortcut-item { display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; text-decoration: none; color: var(--text-main); }
-        .shortcut-icon { width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; }
-        .shortcut-label { font-size: 0.68rem; font-weight: 600; text-align: center; }
-
-        .status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
-        .status-card { background: var(--surface); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border); display: flex; align-items: center; gap: 10px; box-shadow: var(--shadow); }
-        .status-card .val { font-size: 0.95rem; font-weight: 800; }
-        .status-card .sub { font-size: 0.7rem; color: var(--text-sub); font-weight: 600; }
-
-        @keyframes gradientMove {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        .profile-glow-card {
-            background: linear-gradient(-45deg, #2563eb, #9333ea, #db2777, #3b82f6);
-            background-size: 300% 300%;
-            animation: gradientMove 6s ease infinite;
-            border-radius: var(--radius-lg);
-            padding: 26px 20px;
-            box-shadow: 0 0 30px rgba(147, 51, 234, 0.35), 0 8px 20px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-            color: white;
-        }
-        .profile-glow-card * { color: white !important; }
-        .profile-avatar-glow {
-            width: 76px; height: 76px; background: rgba(255, 255, 255, 0.25);
-            backdrop-filter: blur(8px); color: white; border-radius: 50%; margin: 0 auto 12px auto;
-            display: flex; align-items: center; justify-content: center; border: 2px solid rgba(255, 255, 255, 0.5);
-            box-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
-        }
-
-        .notice-box {
-            padding: 12px 14px; border-radius: var(--radius-md); font-size: 0.8rem;
-            margin-bottom: 12px; display: flex; gap: 10px; align-items: flex-start; line-height: 1.4;
-        }
-        .notice-yellow { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
-        .notice-blue { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
-        .notice-red { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
-
-        .rules-container {
-            background: var(--surface); border-radius: var(--radius-lg); padding: 16px;
-            border: 1px solid var(--border); font-size: 0.82rem; line-height: 1.6; box-shadow: var(--shadow);
-        }
-
-        .admin-table { width: 100%; font-size: 0.75rem; border-collapse: collapse; margin-top: 8px; }
-        .admin-table th, .admin-table td { padding: 8px; border-bottom: 1px solid var(--border); text-align: left; }
-        .admin-table th { background: #f8fafc; font-weight: 700; color: var(--text-sub); }
-
-        .chat-container {
-            display: flex; flex-direction: column; height: calc(100vh - 180px); max-height: 520px;
-            background: var(--surface); border-radius: var(--radius-lg); border: 1px solid var(--border);
-            box-shadow: var(--shadow); overflow: hidden;
-        }
-        .chat-header-bar { background: var(--primary); color: white; padding: 12px 16px; display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 0.9rem; }
-        .chat-messages { flex: 1; padding: 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; background: #f8fafc; }
-        .chat-bubble { max-width: 80%; padding: 10px 14px; border-radius: var(--radius-md); font-size: 0.82rem; line-height: 1.4; }
-        .chat-bubble.ai { background: white; color: var(--text-main); align-self: flex-start; border: 1px solid var(--border); box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
-        .chat-bubble.user { background: var(--primary); color: white; align-self: flex-end; }
-        .chat-input-area { padding: 10px; background: var(--surface); border-top: 1px solid var(--border); display: flex; gap: 8px; }
-        .chat-quick-suggestions { display: flex; gap: 6px; overflow-x: auto; padding: 6px 12px; background: var(--surface); border-top: 1px solid var(--border); white-space: nowrap; }
-        .suggestion-chip { background: var(--primary-light); color: var(--primary); border: 1px solid #bfdbfe; padding: 4px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 600; cursor: pointer; }
-
-        .bottom-nav {
-            position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
-            width: 100%; max-width: 480px; background: var(--surface); display: none;
-            justify-content: space-around; padding: 8px 0; border-top: 1px solid var(--border); z-index: 100;
-        }
-        .bottom-nav.active-nav { display: flex; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 2px; color: var(--text-sub); font-size: 0.7rem; font-weight: 600; cursor: pointer; background: none; border: none; flex: 1; }
-        .nav-item.active { color: var(--primary); }
-        .nav-fab {
-            background: var(--primary); color: white; width: 46px; height: 46px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center; margin-top: -22px;
-            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.4); border: 3px solid var(--surface);
-        }
-    </style>
+    <link rel="stylesheet" href="./style.css">
 </head>
 <body>
 
@@ -454,39 +26,55 @@
         <div class="header-links" id="header-social-container"></div>
     </header>
 
+    <!-- MODAL GOOGLE SIGN-IN -->
     <div id="google-modal" class="custom-modal">
         <div class="modal-box">
             <div style="text-align: center; margin-bottom: 16px;">
                 <svg style="width: 32px; height: 32px; margin-bottom: 6px;" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.13 0-5.78-2.11-6.73-4.96H1.19v3.15C3.17 21.31 7.26 24 12 24z"/><path fill="#FBBC05" d="M5.27 14.24c-.25-.72-.38-1.49-.38-2.24s.13-1.52.38-2.24V6.6H1.19C.43 8.13 0 9.87 0 12s.43 3.87 1.19 5.4l4.08-3.16z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.26 0 3.17 2.69 1.19 6.6l4.08 3.15c.95-2.85 3.6-4.96 6.73-4.96z"/></svg>
                 <h3 style="font-size: 1.1rem; font-weight: 700;">Masuk dengan Google</h3>
-                <p style="font-size: 0.78rem; color: var(--text-sub); margin-top: 2px;">Gunakan Akun Google (@gmail.com) Anda</p>
+                <p style="font-size: 0.78rem; color: var(--text-sub); margin-top: 2px;">Gunakan Tombol Resmi Akun Google Anda</p>
             </div>
             
-            <div id="google-step-1">
-                <div class="input-group">
-                    <label>Email Google</label>
-                    <input type="email" id="modal-google-email" class="form-input" placeholder="nama@gmail.com">
+            <div style="display: flex; flex-direction: column; gap: 10px; align-items: center; margin-bottom: 16px;">
+                <div id="g_id_onload"
+                     data-client_id="42190916488-3sldkuhdek79orgmqssb3l0gv2nnuupp.apps.googleusercontent.com"
+                     data-callback="handleCredentialResponse"
+                     data-auto_prompt="false">
                 </div>
-                <div style="display: flex; gap: 8px; margin-top: 16px;">
-                    <button type="button" class="btn-google" style="margin-top: 0; background: #f1f5f9; color: #64748b;" onclick="closeGoogleModal()">Batal</button>
-                    <button type="button" class="btn-primary" style="margin-top: 0;" onclick="nextGoogleStep()">Berikutnya</button>
+                <div class="g_id_signin" 
+                     data-type="standard" 
+                     data-shape="rectangular" 
+                     data-theme="outline" 
+                     data-text="sign_in_with" 
+                     data-size="large" 
+                     data-logo_alignment="left">
                 </div>
             </div>
 
-            <div id="google-step-2" style="display: none;">
-                <div style="background: #f8fafc; padding: 8px 12px; border-radius: var(--radius-sm); font-size: 0.8rem; margin-bottom: 12px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between;">
-                    <span id="display-selected-email" style="font-weight: 600;"></span>
-                    <span style="font-size: 0.7rem; color: var(--primary); cursor: pointer; font-weight: 700;" onclick="backGoogleStep()">Ganti</span>
-                </div>
-                <div class="input-group">
-                    <label>Password Akun Google</label>
-                    <input type="password" id="modal-google-pass" class="form-input" placeholder="Masukkan password">
-                </div>
-                <div style="display: flex; gap: 8px; margin-top: 16px;">
-                    <button type="button" class="btn-google" style="margin-top: 0; background: #f1f5f9; color: #64748b;" onclick="closeGoogleModal()">Batal</button>
-                    <button type="button" class="btn-primary" style="margin-top: 0;" onclick="submitGoogleLoginWithPassword()">Masuk</button>
-                </div>
+            <div style="display: flex; gap: 8px; margin-top: 16px;">
+                <button type="button" class="btn-google" style="margin-top: 0; background: #f1f5f9; color: #64748b;" onclick="closeGoogleModal()">Batal</button>
             </div>
+        </div>
+    </div>
+
+    <!-- MODAL VERIFIKASI KODE OTP EMAIL ASLI -->
+    <div id="otp-modal" class="custom-modal">
+        <div class="modal-box">
+            <div style="text-align: center; margin-bottom: 16px;">
+                <div style="width: 50px; height: 50px; background: var(--primary-light); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px auto;">
+                    <i data-lucide="shield-check" style="width: 24px; height: 24px;"></i>
+                </div>
+                <h3 style="font-size: 1.1rem; font-weight: 700;">Verifikasi Email Asli</h3>
+                <p style="font-size: 0.78rem; color: var(--text-sub); margin-top: 4px;">Kode verifikasi 6 digit telah dikirim ke email <strong id="otp-target-email" style="color: var(--primary);"></strong>. Cek inbox/spam Anda.</p>
+            </div>
+            
+            <div class="input-group">
+                <label>Masukkan Kode Verifikasi</label>
+                <input type="text" id="otp-input-code" class="form-input" placeholder="Contoh: 482910" maxlength="6" style="text-align: center; letter-spacing: 4px; font-weight: bold; font-size: 1.1rem;">
+            </div>
+
+            <button type="button" class="btn-primary" onclick="verifyEmailOtpCode()">Konfirmasi & Daftar</button>
+            <button type="button" class="btn-google" style="margin-top: 8px; background: #f1f5f9; color: #64748b;" onclick="closeOtpModal()">Batal</button>
         </div>
     </div>
 
@@ -521,20 +109,20 @@
                 </button>
             </form>
 
-            <form id="form-auth-reg" style="display: none;" onsubmit="event.preventDefault(); processRegister();">
+            <form id="form-auth-reg" style="display: none;" onsubmit="event.preventDefault(); initiateRegisterVerification();">
                 <div class="input-group">
                     <label>Nama Lengkap</label>
                     <input type="text" id="reg-name" class="form-input" placeholder="Nama Anda" required>
                 </div>
                 <div class="input-group">
-                    <label>Email (Wajib @gmail.com)</label>
+                    <label>Email (Wajib Berakhiran @gmail.com Asli & Aktif)</label>
                     <input type="email" id="reg-email" class="form-input" placeholder="nama@gmail.com" required>
                 </div>
                 <div class="input-group">
                     <label>Password</label>
                     <input type="password" id="reg-pass" class="form-input" placeholder="Minimal 6 karakter" required>
                 </div>
-                <button type="submit" class="btn-primary" style="margin-top: 10px;">Daftar Akun</button>
+                <button type="submit" id="btn-submit-reg" class="btn-primary" style="margin-top: 10px;">Kirim Verifikasi Email</button>
             </form>
         </div>
     </div>
@@ -632,9 +220,8 @@
     <!-- 4. VIEW SETOR -->
     <div id="view-setor" class="view-section">
         <h3 style="font-weight: 800; margin-bottom: 4px;">Setor Daftar Gmail</h3>
-        <p style="font-size: 0.8rem; color: var(--text-sub); margin-bottom: 14px;">Tempel daftar, satu Gmail per baris.</p>
+        <p style="font-size: 0.8rem; color: var(--text-sub); margin-bottom: 14px;">Tempel daftar dengan format: <code style="background:#f1f5f9; padding:2px 4px; border-radius:4px;">email@gmail.com|password</code> (Satu Gmail per baris).</p>
 
-        <!-- TOMBOL TAMBAHAN: CEK GMAIL (checkgmail.online) -->
         <div style="margin-bottom: 14px;">
             <button type="button" class="btn-primary" style="background: #10b981; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="bukaCheckGmailExternal()">
                 <i data-lucide="external-link" style="width: 18px; height: 18px;"></i> Cek Status Gmail (checkgmail.online)
@@ -654,7 +241,7 @@
         </div>
 
         <div class="info-box-card" style="padding: 10px;">
-            <textarea id="setor-input" class="form-input" style="height: 120px; font-family: monospace; font-size: 0.85rem; resize: none;" placeholder="email1@gmail.com|password" oninput="countLines()"></textarea>
+            <textarea id="setor-input" class="form-input" style="height: 120px; font-family: monospace; font-size: 0.85rem; resize: none;" placeholder="email1@gmail.com|sgsg1122" oninput="countLines()"></textarea>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
                 <span style="font-size: 0.75rem; color: var(--text-sub);">Total: <strong id="line-count">0</strong> baris</span>
                 <button class="btn-primary" id="btn-kirim-storan" style="width: auto; padding: 8px 18px;" onclick="processSetor()">Kirim Storan</button>
@@ -664,7 +251,12 @@
 
     <!-- 5. VIEW RIWAYAT -->
     <div id="view-riwayat" class="view-section">
-        <h3 style="font-weight: 800; margin-bottom: 14px;">Riwayat Storan Anda</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <h3 style="font-weight: 800;">Riwayat Storan Anda</h3>
+            <button class="btn-primary" style="width: auto; padding: 6px 12px; font-size: 0.75rem; background: var(--success); display: flex; align-items: center; gap: 4px;" onclick="copyAllRiwayatGmail()">
+                <i data-lucide="copy" style="width: 14px; height: 14px;"></i> Salin Semua Gmail
+            </button>
+        </div>
         <div id="riwayat-list-container">
             <div class="info-box-card" style="text-align: center; color: var(--text-sub); padding: 30px 10px;">
                 Belum ada setoran.
@@ -680,7 +272,7 @@
                 <i data-lucide="wallet" style="width: 24px; opacity: 0.8;"></i>
             </div>
             <div class="amount" id="user-saldo-display">Rp0</div>
-            <div class="subtext">Dapat dicairkan kapan saja ke e-wallet pilihanmu. Minimal pencairan <strong>Rp10.000</strong>.</div>
+            <div class="subtext">Dapat dicairkan sesuai pendapatan. Minimal pencairan <strong>Rp10.000</strong>.</div>
         </div>
 
         <div class="info-box-card">
@@ -775,19 +367,6 @@
             </div>
         </div>
 
-        <div class="info-box-card" style="margin-top: 12px;">
-            <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 8px; color: var(--primary); display: flex; align-items: center; gap: 6px;">
-                <i data-lucide="share-2" style="width: 18px;"></i> Program Referral (Bonus Rp5.000)
-            </div>
-            <p style="font-size: 0.78rem; color: var(--text-sub); margin-bottom: 10px;">Ajak temanmu bergabung menggunakan link referral di bawah ini. Dapatkan bonus saldo Rp5.000 otomatis!</p>
-            <div class="input-group" style="margin-bottom: 8px;">
-                <input type="text" id="profil-referral-link" class="form-input" readonly style="font-size: 0.78rem; background: #f8fafc;">
-            </div>
-            <button class="btn-primary" style="font-size: 0.8rem; padding: 8px;" onclick="copyReferralLink()">
-                <i data-lucide="copy" style="width: 14px; vertical-align: middle; margin-right: 4px;"></i> Salin Link Referral
-            </button>
-        </div>
-
         <div class="info-box-card" style="display: flex; gap: 10px; margin-top: 12px;" id="profil-social-container"></div>
 
         <!-- PANEL ADMIN -->
@@ -795,7 +374,7 @@
             <div class="info-box-card" style="border: 2px dashed var(--primary); margin-top: 16px;">
                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; color: var(--primary);">
                     <i data-lucide="settings" style="width: 18px;"></i>
-                    <strong style="font-size: 0.9rem;">Panel Kontrol Admin (Pengaturan Realtime)</strong>
+                    <strong style="font-size: 0.9rem;">Panel Kontrol Admin (Pengaturan Realtime & Rules)</strong>
                 </div>
 
                 <div class="input-group">
@@ -842,19 +421,26 @@
                 </div>
 
                 <div class="input-group">
-                    <label>Edit Peringatan Kuning</label>
+                    <label>Edit Peringatan Kuning (Password Wajib)</label>
                     <textarea id="admin-notice-yellow" class="form-input" style="height: 70px; font-size: 0.8rem;" oninput="saveAdminSettings()"></textarea>
                 </div>
             </div>
 
-            <!-- KELOLA PENARIKAN DANA (ACC / TOLAK) -->
+            <!-- KELOLA PENARIKAN DANA -->
             <div class="info-box-card" style="margin-top: 16px;">
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; color: var(--primary);">
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <i data-lucide="credit-card" style="width: 18px;"></i>
-                        <strong style="font-size: 0.9rem;">Kelola Permintaan Tarik Saldo Member</strong>
+                        <strong style="font-size: 0.9rem;">Kelola & Bersihkan Permintaan Tarik Saldo Ngasal</strong>
                     </div>
                 </div>
+                
+                <div style="margin-bottom: 12px;">
+                    <button type="button" class="btn-primary" style="background: #ef4444; font-size: 0.78rem; padding: 8px; display: flex; align-items: center; justify-content: center; gap: 6px;" onclick="autoCleanNgasalWithdrawals()">
+                        <i data-lucide="shield-alert" style="width: 16px; height: 16px;"></i> Bersihkan Otomatis WD Ngasal / Melebihi Saldo
+                    </button>
+                </div>
+
                 <div style="max-height: 220px; overflow-y: auto;">
                     <table class="admin-table">
                         <thead>
@@ -871,21 +457,42 @@
                 </div>
             </div>
 
-            <!-- KELOLA USER & TOTAL PENGGUNA TERDAFTAR (DENGAN FITUR BAN / HAPUS) -->
+            <!-- KELOLA USER -->
             <div class="info-box-card" style="margin-top: 16px;">
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; color: var(--primary);">
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <i data-lucide="users" style="width: 18px;"></i>
-                        <strong style="font-size: 0.9rem;">Daftar Akun / User Terdaftar (<span id="total-user-count">0</span> Orang)</strong>
+                        <strong style="font-size: 0.9rem;">Daftar Akun & Referral (<span id="total-user-count">0</span> Orang)</strong>
                     </div>
                 </div>
-                <div style="max-height: 180px; overflow-y: auto;">
+                
+                <div style="margin-bottom: 12px; display: flex; gap: 8px;">
+                    <button type="button" class="btn-primary" style="background: #f59e0b; font-size: 0.78rem; padding: 8px; flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;" onclick="autoCleanDuplicateIpUsers()">
+                        <i data-lucide="shield-alert" style="width: 16px; height: 16px;"></i> Blokir IP Kembar
+                    </button>
+                    <button type="button" class="btn-primary" style="background: #ef4444; font-size: 0.78rem; padding: 8px; flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;" onclick="autoDeleteAllNgasalUsers()">
+                        <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i> Hapus Semua Akun Ngasal
+                    </button>
+                </div>
+
+                <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                    <input type="text" id="searchUser" placeholder="Cari nama atau email user..." onkeyup="filterUser()" style="flex: 2; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.82rem; outline: none;">
+                    <select id="filterStatusNuyul" onchange="filterUser()" style="flex: 1; padding: 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.78rem; outline: none; background: white;">
+                        <option value="all">Semua Status</option>
+                        <option value="asli">Referral Asli</option>
+                        <option value="nuyul">🚨 Indikasi Nuyul</option>
+                        <option value="ip_ganda">🌐 IP Kembar / Ganda</option>
+                    </select>
+                </div>
+
+                <div style="max-height: 220px; overflow-y: auto;">
                     <table class="admin-table">
                         <thead>
                             <tr>
-                                <th>Nama</th>
+                                <th>Nama & Status</th>
                                 <th>Email</th>
-                                <th>Role / Info</th>
+                                <th>IP Address</th>
+                                <th>Saldo & Referral</th>
                                 <th>Aksi</th>
                             </tr>
                         </thead>
@@ -894,6 +501,7 @@
                 </div>
             </div>
 
+            <!-- KELOLA STORAN GMAIL MEMBER -->
             <div class="info-box-card" style="margin-top: 16px;">
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; color: var(--primary);">
                     <div style="display: flex; align-items: center; gap: 8px;">
@@ -906,7 +514,7 @@
                         <thead>
                             <tr>
                                 <th>User</th>
-                                <th>Gmail</th>
+                                <th>Gmail | Password</th>
                                 <th>Status</th>
                                 <th>Aksi</th>
                             </tr>
@@ -915,6 +523,36 @@
                     </table>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- 8. VIEW REFERRAL -->
+    <div id="view-referral" class="view-section">
+        <div class="info-box-card" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-color: #bfdbfe;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; color: var(--primary);">
+                <i data-lucide="share-2" style="width: 20px;"></i>
+                <strong style="font-size: 0.95rem;">Program Referral & Anti-Nuyul</strong>
+            </div>
+            <p style="font-size: 0.78rem; color: var(--text-main); line-height: 1.4; margin-bottom: 10px;">
+                Halaman ini khusus memantau tautan undangan dan bonus referral Anda secara terpisah dari data storan Gmail.
+            </p>
+            <div class="input-group" style="margin-bottom: 8px;">
+                <label style="font-size: 0.75rem;">Link Referral Khusus Anda</label>
+                <input type="text" id="profil-referral-link" class="form-input" readonly style="font-size: 0.78rem; background: #ffffff;">
+            </div>
+            <button class="btn-primary" style="font-size: 0.8rem; padding: 8px;" onclick="copyReferralLink()">
+                <i data-lucide="copy" style="width: 14px; vertical-align: middle; margin-right: 4px;"></i> Salin Link Referral
+            </button>
+        </div>
+
+        <div class="info-box-card">
+            <div style="font-weight: 700; font-size: 0.85rem; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                <i data-lucide="shield-alert" style="width: 16px; color: var(--warning);"></i> Statistik & Keamanan Referral
+            </div>
+            <p style="font-size: 0.76rem; color: var(--text-sub); line-height: 1.4;">
+                • Bonus: <strong>Rp5.000</strong> per undang teman aktif.<br>
+                • Sistem otomatis mendeteksi kecurangan (nuyul / self-referral / IP ganda).
+            </p>
         </div>
     </div>
 
@@ -934,9 +572,9 @@
             </div>
             <span style="margin-top: 16px;">Admin AI</span>
         </button>
-        <button class="nav-item" onclick="navigateTo('view-saldo')">
-            <i data-lucide="wallet" style="width: 18px; height: 18px;"></i>
-            <span>Saldo</span>
+        <button class="nav-item" onclick="navigateTo('view-referral')">
+            <i data-lucide="share-2" style="width: 18px; height: 18px;"></i>
+            <span>Referral</span>
         </button>
         <button class="nav-item" onclick="navigateTo('view-profil')">
             <i data-lucide="user" style="width: 18px; height: 18px;"></i>
@@ -944,11 +582,8 @@
         </button>
     </nav>
 
-    <!-- JS ENGINE DENGAN FIREBASE REALTIME DATABASE -->
+    <!-- JS ENGINE DENGAN PENGECEKAN FORMAT RULES SEBELUM PROSES -->
     <script>
-        // ==========================================
-        // KONFIGURASI FIREBASE
-        // ==========================================
         const firebaseConfig = {
           apiKey: "AIzaSyDbQDMvSEIVNRMmEkaY1L...",
           authDomain: "dafz99.firebaseapp.com",
@@ -958,30 +593,37 @@
           appId: "1:42190916488:web:af8f6b505..."
         };
 
-        // Inisialisasi Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
         lucide.createIcons();
 
         const ADMIN_USER = "admin";
-        const ADMIN_PASS = "raja6";
+        const ADMIN_PASS = "dafZ12345";
 
-        const DEFAULT_RULES = `<h4>Rules / Aturan Storan Gmail</h4><ol style="padding-left: 16px; margin-top: 6px;"><li>Gmail Harus Fresh (Baru dibuat).</li><li>Wajib mengikuti format angka yang ditentukan.</li><li>Akun tidak boleh di-Recovery dengan nomor telepon lain.</li></ol>`;
+        const DEFAULT_RULES = `<h4>Rules / Aturan Storan Gmail</h4><ol style="padding-left: 16px; margin-top: 6px;"><li>Gmail Harus Fresh (Baru dibuat).</li><li>Format wajib: email@gmail.com|password (Password wajib: <b>sgsg1122</b>).</li><li>Wajib mengikuti format angka yang ditentukan sebelum @gmail.com.</li></ol>`;
         const DEFAULT_NOTICE_BLUE = "<strong>Wajib akhiri angka 1-100</strong><br>Angka harus tepat sebelum @gmail.com, tanpa huruf/simbol setelahnya.";
-        const DEFAULT_NOTICE_YELLOW = "<strong>Password wajib untuk Gmail yang disetor:</strong><br><code style='background: rgba(0,0,0,0.06); padding: 2px 4px; border-radius: 4px;'>finainga</code>";
+        const DEFAULT_NOTICE_YELLOW = "<strong>Password wajib untuk Gmail yang disetor:</strong><br><code style='background: rgba(0,0,0,0.06); padding: 2px 4px; border-radius: 4px;'>sgsg1122</code>";
 
         let currentUser = null;
-        let tempGoogleEmail = "";
         let selectedWallet = "DANA";
         let referralCodeFromUrl = "";
+        let clientIpAddress = "192.168.1." + Math.floor(Math.random() * 5 + 1);
 
         let remoteSettings = {};
         let remoteUsers = [];
         let remoteStoran = [];
         let remoteTarik = [];
 
+        let pendingRegistrationData = null;
+        let generatedOtpCode = "";
+
         window.addEventListener('DOMContentLoaded', () => {
+            fetch('https://api.ipify.org?format=json')
+                .then(response => response.json())
+                .then(data => { if(data.ip) clientIpAddress = data.ip; })
+                .catch(() => {});
+
             const urlParams = new URLSearchParams(window.location.search);
             referralCodeFromUrl = urlParams.get('ref');
             if(referralCodeFromUrl) {
@@ -996,7 +638,7 @@
             db.ref('users').on('value', (snapshot) => {
                 let data = snapshot.val();
                 remoteUsers = data ? Object.values(data) : [
-                    { name: "Admin Utama", email: "admin", role: "Admin", refCode: "ADMINDAF", bonusReferral: 0 }
+                    { name: "Admin Utama", email: "admin", role: "Admin", refCode: "ADMINDAF", bonusReferral: 0, ipAddress: "127.0.0.1" }
                 ];
                 if(currentUser === 'admin') renderAdminData();
             });
@@ -1019,7 +661,166 @@
             navigateTo('view-auth');
         });
 
-        // FUNGSI TAMBAHAN UNTUK MEMBUKA SITUS CEK GMAIL
+        function initiateRegisterVerification() {
+            const name = document.getElementById('reg-name').value.trim();
+            const email = document.getElementById('reg-email').value.trim().toLowerCase();
+            const pass = document.getElementById('reg-pass').value.trim();
+
+            let emailRegex = /^[a-z0-9._%+-]+@gmail\.com$/;
+            if (!emailRegex.test(email) || email.includes('..') || email.startsWith('.')) {
+                alert('Pendaftaran gagal! Harap masukkan format @gmail.com yang valid dan asli.');
+                return;
+            }
+            if (!pass || pass.length < 6) {
+                alert('Password minimal harus 6 karakter!');
+                return;
+            }
+
+            const users = getUsers();
+            if(users.some(u => u.email === email)) {
+                alert('Email sudah terdaftar di sistem!');
+                return;
+            }
+
+            generatedOtpCode = Math.floor(100000 + Math.random() * 900000).toString();
+            pendingRegistrationData = { name, email, pass };
+
+            const btnSubmitReg = document.getElementById('btn-submit-reg');
+            btnSubmitReg.innerText = "Mengirim Kode ke Email...";
+            btnSubmitReg.disabled = true;
+
+            let templateParams = {
+                to_email: email,
+                to_name: name,
+                otp_code: generatedOtpCode
+            };
+
+            emailjs.send('service_default', 'template_default', templateParams)
+                .then(function(response) {
+                    btnSubmitReg.innerText = "Daftar Akun";
+                    btnSubmitReg.disabled = false;
+                    document.getElementById('otp-target-email').innerText = email;
+                    document.getElementById('otp-modal').classList.add('active');
+                }, function(error) {
+                    btnSubmitReg.innerText = "Daftar Akun";
+                    btnSubmitReg.disabled = false;
+                    document.getElementById('otp-target-email').innerText = email;
+                    document.getElementById('otp-modal').classList.add('active');
+                });
+        }
+
+        function closeOtpModal() {
+            document.getElementById('otp-modal').classList.remove('active');
+        }
+
+        function verifyEmailOtpCode() {
+            const enteredOtp = document.getElementById('otp-input-code').value.trim();
+            if (enteredOtp !== generatedOtpCode) {
+                alert('Kode verifikasi salah! Silakan periksa kembali email Anda.');
+                return;
+            }
+
+            closeOtpModal();
+            finalizeRegistration(pendingRegistrationData);
+        }
+
+        function finalizeRegistration(data) {
+            const { name, email, pass } = data;
+            let assignedRef = generateRefCode(name);
+            let pendingRefCode = localStorage.getItem('pending_ref');
+            let bonusAwal = 0;
+
+            const users = getUsers();
+            if (pendingRefCode && pendingRefCode !== assignedRef) {
+                let referrer = users.find(u => u.refCode === pendingRefCode);
+                if (referrer) {
+                    referrer.bonusReferral = (referrer.bonusReferral || 0) + 5000;
+                    db.ref('users/' + referrer.email.replace(/[\.\#\$\[\]]/g, '_')).set(referrer);
+                }
+            }
+
+            let newUser = { 
+                name, 
+                email, 
+                role: "User", 
+                refCode: assignedRef,
+                bonusReferral: bonusAwal,
+                ipAddress: clientIpAddress,
+                isBanned: false
+            };
+
+            db.ref('users/' + email.replace(/[\.\#\$\[\]]/g, '_')).set(newUser);
+            localStorage.removeItem('pending_ref');
+
+            alert('Verifikasi Email Berhasil! Akun Anda telah terdaftar secara resmi. Silakan Masuk.');
+            document.getElementById('reg-name').value = '';
+            document.getElementById('reg-email').value = '';
+            document.getElementById('reg-pass').value = '';
+            document.getElementById('otp-input-code').value = '';
+            switchAuth('login');
+        }
+
+        function handleCredentialResponse(response) {
+            const responsePayload = parseJwt(response.credential);
+            let email = responsePayload.email;
+            let name = responsePayload.name;
+
+            const users = getUsers();
+            let found = users.find(u => u.email === email);
+
+            if (found && found.isBanned) {
+                alert('Akun Google ini telah diblokir (banned) oleh Admin.');
+                closeGoogleModal();
+                return;
+            }
+
+            if (!found) {
+                let assignedRef = generateRefCode(name.replace(/[^a-zA-Z0-9]/g, ''));
+                let pendingRefCode = localStorage.getItem('pending_ref');
+                let bonusAwal = 0;
+
+                if (pendingRefCode && pendingRefCode !== assignedRef) {
+                    let referrer = users.find(u => u.refCode === pendingRefCode);
+                    if (referrer) {
+                        referrer.bonusReferral = (referrer.bonusReferral || 0) + 5000;
+                        db.ref('users/' + referrer.email.replace(/[\.\#\$\[\]]/g, '_')).set(referrer);
+                    }
+                }
+
+                found = { 
+                    name: name, 
+                    email: email, 
+                    role: "User", 
+                    refCode: assignedRef,
+                    bonusReferral: bonusAwal,
+                    ipAddress: clientIpAddress,
+                    isBanned: false
+                };
+                
+                db.ref('users/' + email.replace(/[\.\#\$\[\]]/g, '_')).set(found);
+                localStorage.removeItem('pending_ref');
+            } else {
+                found.ipAddress = clientIpAddress;
+                db.ref('users/' + email.replace(/[\.\#\$\[\]]/g, '_')).update({ ipAddress: clientIpAddress });
+            }
+
+            currentUser = found.email;
+            document.getElementById('admin-panel-container').style.display = 'none';
+            
+            closeGoogleModal();
+            alert('Berhasil masuk dengan Google Sign-In!');
+            navigateTo('view-beranda');
+        }
+
+        function parseJwt(token) {
+            var base64Url = token.split('.')[1];
+            var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+            return JSON.parse(jsonPayload);
+        }
+
         function bukaCheckGmailExternal() {
             window.open('https://checkgmail.online', '_blank');
         }
@@ -1048,21 +849,90 @@
             updateStoranUI();
         }
 
-        function getUsers() {
-            return remoteUsers;
-        }
-
-        function getStoran() {
-            return remoteStoran;
-        }
-
-        function getTarikList() {
-            return remoteTarik;
-        }
+        function getUsers() { return remoteUsers; }
+        function getStoran() { return remoteStoran; }
+        function getTarikList() { return remoteTarik; }
 
         function generateRefCode(name) {
             let clean = name.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
             return clean.substring(0, 5) + Math.floor(100 + Math.random() * 900);
+        }
+
+        function detectNuyul(user, allUsers) {
+            let alasan = [];
+            const emailName = user.email.split('@')[0];
+            
+            if (emailName.length > 15 && /^[a-z0-9]+$/.test(emailName) && !/[aeiou]{2,}/.test(emailName)) {
+                alasan.push("Email terindikasi generate otomatis");
+            }
+            
+            let isIpDuplicate = false;
+            if (user.ipAddress && allUsers) {
+                let sameIpCount = allUsers.filter(u => u.ipAddress === user.ipAddress && u.email !== user.email).length;
+                if (sameIpCount > 0) {
+                    isIpDuplicate = true;
+                    alasan.push(`IP Kembar terdeteksi (${user.ipAddress})`);
+                }
+            }
+
+            return {
+                isNuyul: alasan.length > 0,
+                isIpGanda: isIpDuplicate,
+                alasan: alasan.length > 0 ? alasan.join(", ") : "Normal / Asli"
+            };
+        }
+
+        function autoCleanDuplicateIpUsers() {
+            if(!confirm("Apakah Anda yakin ingin memblokir akun-akun dengan IP kembar/ganda secara otomatis?")) return;
+            let users = getUsers();
+            let ipCounts = {};
+            users.forEach(u => { if (u.ipAddress && u.email !== 'admin') ipCounts[u.ipAddress] = (ipCounts[u.ipAddress] || 0) + 1; });
+            let cleanedCount = 0;
+            users.forEach(u => {
+                if (u.email !== 'admin' && u.ipAddress && ipCounts[u.ipAddress] > 1) {
+                    db.ref('users/' + u.email.replace(/[\.\#\$\[\]]/g, '_')).update({ isBanned: true });
+                    cleanedCount++;
+                }
+            });
+            alert(`Pembersihan selesai! Sebanyak ${cleanedCount} akun diblokir.`);
+        }
+
+        function autoDeleteAllNgasalUsers() {
+            if(!confirm("Hapus permanen semua akun nuyul?")) return;
+            let users = getUsers();
+            let deletedCount = 0;
+            users.forEach(u => {
+                if (u.email !== 'admin') {
+                    let nuyulCheck = detectNuyul(u, users);
+                    if (nuyulCheck.isNuyul || nuyulCheck.isIpGanda) {
+                        db.ref('users/' + u.email.replace(/[\.\#\$\[\]]/g, '_')).remove();
+                        deletedCount++;
+                    }
+                }
+            });
+            alert(`Berhasil menghapus ${deletedCount} akun nuyul.`);
+        }
+
+        function autoCleanNgasalWithdrawals() {
+            if(!confirm("Bersihkan penarikan saldo ngasal?")) return;
+            let tarikList = getTarikList();
+            let users = getUsers();
+            let storanList = getStoran();
+            let hargaStr = remoteSettings.harga || 'Rp4.700';
+            let hargaNum = parseInt(hargaStr.replace(/[^0-9]/g, '')) || 4700;
+            let cleanedCount = 0;
+
+            tarikList.forEach(item => {
+                let u = users.find(usr => usr.email === item.user);
+                let userStoranDiterima = storanList.filter(s => s.user === item.user && s.status === 'Diterima').length;
+                let totalSaldoSah = (userStoranDiterima * hargaNum) + (u ? (u.bonusReferral || 0) : 0);
+
+                if (item.nominal > totalSaldoSah || !item.nomor || item.nomor.length < 9 || (u && u.isBanned)) {
+                    db.ref('tarik_dana/' + item.id).remove();
+                    cleanedCount++;
+                }
+            });
+            alert(`Berhasil membersihkan ${cleanedCount} data penarikan tidak sah.`);
         }
 
         function selectWalletProvider(provider) {
@@ -1094,7 +964,7 @@
             updateStoranUI();
             if (viewId === 'view-riwayat') renderUserRiwayat();
             if (viewId === 'view-saldo') renderTarikRiwayat();
-            if (viewId === 'view-profil') {
+            if (viewId === 'view-profil' || viewId === 'view-referral') {
                 renderUserProfilData();
                 if (currentUser === 'admin') renderAdminData();
             }
@@ -1103,9 +973,8 @@
         function processLogin() {
             const inputUser = document.getElementById('login-email').value.trim();
             const inputPass = document.getElementById('login-pass').value.trim();
-
             const users = getUsers();
-            let found = users.find(u => u.email === inputUser);
+            let found = users.find(u => u.email === inputUser || u.name === inputUser);
 
             if (inputUser === ADMIN_USER && inputPass === ADMIN_PASS) {
                 currentUser = 'admin';
@@ -1116,6 +985,8 @@
                     alert('Akun Anda telah diblokir (banned) oleh Admin.');
                     return;
                 }
+                found.ipAddress = clientIpAddress;
+                db.ref('users/' + found.email.replace(/[\.\#\$\[\]]/g, '_')).update({ ipAddress: clientIpAddress });
                 currentUser = found.email;
                 document.getElementById('admin-panel-container').style.display = 'none';
                 alert('Berhasil masuk!');
@@ -1123,139 +994,11 @@
                 alert('Akun tidak ditemukan atau password salah!');
                 return;
             }
-
             navigateTo('view-beranda');
         }
 
-        function openGoogleModal() {
-            document.getElementById('google-modal').classList.add('active');
-            document.getElementById('google-step-1').style.display = 'block';
-            document.getElementById('google-step-2').style.display = 'none';
-            document.getElementById('modal-google-email').value = '';
-            document.getElementById('modal-google-pass').value = '';
-            document.getElementById('modal-google-email').focus();
-        }
-
-        function closeGoogleModal() {
-            document.getElementById('google-modal').classList.remove('active');
-        }
-
-        function nextGoogleStep() {
-            let email = document.getElementById('modal-google-email').value.trim().toLowerCase();
-            if (!email) {
-                alert('Silakan masukkan email Google Anda!');
-                return;
-            }
-            if (!email.endsWith('@gmail.com')) {
-                alert('Akun Google wajib berakhiran @gmail.com yang valid!');
-                return;
-            }
-
-            tempGoogleEmail = email;
-            document.getElementById('display-selected-email').innerText = email;
-            document.getElementById('google-step-1').style.display = 'none';
-            document.getElementById('google-step-2').style.display = 'block';
-            document.getElementById('modal-google-pass').focus();
-        }
-
-        function backGoogleStep() {
-            document.getElementById('google-step-2').style.display = 'none';
-            document.getElementById('google-step-1').style.display = 'block';
-            document.getElementById('modal-google-email').focus();
-        }
-
-        function submitGoogleLoginWithPassword() {
-            let password = document.getElementById('modal-google-pass').value.trim();
-            if (!password) {
-                alert('Silakan masukkan password akun Google Anda!');
-                return;
-            }
-
-            const users = getUsers();
-            let found = users.find(u => u.email === tempGoogleEmail);
-
-            if (found && found.isBanned) {
-                alert('Akun Google ini telah diblokir (banned) oleh Admin.');
-                closeGoogleModal();
-                return;
-            }
-
-            if (!found) {
-                let assignedRef = generateRefCode(tempGoogleEmail.split('@')[0]);
-                let pendingRefCode = localStorage.getItem('pending_ref');
-                let bonusAwal = 0;
-
-                if (pendingRefCode && pendingRefCode !== assignedRef) {
-                    let referrer = users.find(u => u.refCode === pendingRefCode);
-                    if (referrer) {
-                        referrer.bonusReferral = (referrer.bonusReferral || 0) + 5000;
-                        db.ref('users/' + referrer.email.replace(/[.#$\/\[\]]/g, '_')).set(referrer);
-                    }
-                }
-
-                found = { 
-                    name: tempGoogleEmail.split('@')[0], 
-                    email: tempGoogleEmail, 
-                    role: "User", 
-                    refCode: assignedRef,
-                    bonusReferral: bonusAwal,
-                    isBanned: false
-                };
-                
-                db.ref('users/' + tempGoogleEmail.replace(/[.#$\/\[\]]/g, '_')).set(found);
-                localStorage.removeItem('pending_ref');
-            }
-
-            currentUser = found.email;
-            document.getElementById('admin-panel-container').style.display = 'none';
-            
-            closeGoogleModal();
-            alert('Berhasil masuk dengan Akun Google!');
-            navigateTo('view-beranda');
-        }
-
-        function processRegister() {
-            const name = document.getElementById('reg-name').value.trim();
-            const email = document.getElementById('reg-email').value.trim().toLowerCase();
-
-            if (!email.endsWith('@gmail.com')) {
-                alert('Pendaftaran gagal! Email wajib menggunakan akhiran @gmail.com yang valid.');
-                return;
-            }
-
-            const users = getUsers();
-            if(users.some(u => u.email === email)) {
-                alert('Email sudah terdaftar!');
-                return;
-            }
-
-            let assignedRef = generateRefCode(name);
-            let pendingRefCode = localStorage.getItem('pending_ref');
-            let bonusAwal = 0;
-
-            if (pendingRefCode && pendingRefCode !== assignedRef) {
-                let referrer = users.find(u => u.refCode === pendingRefCode);
-                if (referrer) {
-                    referrer.bonusReferral = (referrer.bonusReferral || 0) + 5000;
-                    db.ref('users/' + referrer.email.replace(/[.#$\/\[\]]/g, '_')).set(referrer);
-                }
-            }
-
-            let newUser = { 
-                name, 
-                email, 
-                role: "User", 
-                refCode: assignedRef,
-                bonusReferral: bonusAwal,
-                isBanned: false
-            };
-
-            db.ref('users/' + email.replace(/[.#$\/\[\]]/g, '_')).set(newUser);
-            localStorage.removeItem('pending_ref');
-
-            alert('Pendaftaran berhasil! Silakan Masuk.');
-            switchAuth('login');
-        }
+        function openGoogleModal() { document.getElementById('google-modal').classList.add('active'); }
+        function closeGoogleModal() { document.getElementById('google-modal').classList.remove('active'); }
 
         function renderUserProfilData() {
             const users = getUsers();
@@ -1270,7 +1013,7 @@
                     document.getElementById('profil-email').innerText = found.email;
                     if(!found.refCode) {
                         found.refCode = generateRefCode(found.name);
-                        db.ref('users/' + found.email.replace(/[.#$\/\[\]]/g, '_')).set(found);
+                        db.ref('users/' + found.email.replace(/[\.\#\$\[\]]/g, '_')).set(found);
                     }
                     document.getElementById('profil-referral-link').value = window.location.origin + window.location.pathname + "?ref=" + found.refCode;
                 }
@@ -1280,9 +1023,8 @@
         function copyReferralLink() {
             const copyText = document.getElementById('profil-referral-link');
             copyText.select();
-            copyText.setSelectionRange(0, 99999);
             navigator.clipboard.writeText(copyText.value);
-            alert('Link referral berhasil disalin! Bagikan ke temanmu untuk dapat bonus Rp5.000.');
+            alert('Link referral berhasil disalin!');
         }
 
         function saveAdminSettings() {
@@ -1308,32 +1050,19 @@
             const linkWaChannel = remoteSettings.linkWaChannel || 'https://whatsapp.com/channel/xxx';
             const nomorWa = remoteSettings.nomorWa || '6281234567890';
 
-            let headerSocialHTML = `
-                <a href="${linkTele}" target="_blank" class="btn-social-header" style="color: #0088cc;">
-                    <i data-lucide="send" style="width: 12px; height: 12px;"></i> Tele
-                </a>
-                <a href="${linkWaChannel}" target="_blank" class="btn-social-header" style="color: #25d366;">
-                    <i data-lucide="message-square" style="width: 12px; height: 12px;"></i> WA
-                </a>
+            document.getElementById('header-social-container').innerHTML = `
+                <a href="${linkTele}" target="_blank" class="btn-social-header" style="color: #0088cc;"><i data-lucide="send" style="width: 12px; height: 12px;"></i> Tele</a>
+                <a href="${linkWaChannel}" target="_blank" class="btn-social-header" style="color: #25d366;"><i data-lucide="message-square" style="width: 12px; height: 12px;"></i> WA</a>
             `;
-            document.getElementById('header-social-container').innerHTML = headerSocialHTML;
 
-            let profilSocialHTML = `
-                <a href="${linkTele}" target="_blank" class="btn-primary" style="text-align: center; background: #0088cc; font-size: 0.75rem; padding: 8px;">
-                    <i data-lucide="send" style="width: 13px; vertical-align: middle;"></i> Telegram
-                </a>
-                <a href="${linkWaChannel}" target="_blank" class="btn-primary" style="text-align: center; background: #25d366; font-size: 0.75rem; padding: 8px;">
-                    <i data-lucide="message-square" style="width: 13px; vertical-align: middle;"></i> Channel WA
-                </a>
-                <a href="https://wa.me/${nomorWa}" target="_blank" class="btn-primary" style="text-align: center; background: #16a34a; font-size: 0.75rem; padding: 8px;">
-                    <i data-lucide="phone" style="width: 13px; vertical-align: middle;"></i> WA Saya
-                </a>
+            document.getElementById('profil-social-container').innerHTML = `
+                <a href="${linkTele}" target="_blank" class="btn-primary" style="text-align: center; background: #0088cc; font-size: 0.75rem; padding: 8px;"><i data-lucide="send" style="width: 13px;"></i> Telegram</a>
+                <a href="${linkWaChannel}" target="_blank" class="btn-primary" style="text-align: center; background: #25d366; font-size: 0.75rem; padding: 8px;"><i data-lucide="message-square" style="width: 13px;"></i> Channel WA</a>
+                <a href="https://wa.me/${nomorWa}" target="_blank" class="btn-primary" style="text-align: center; background: #16a34a; font-size: 0.75rem; padding: 8px;"><i data-lucide="phone" style="width: 13px;"></i> WA Saya</a>
             `;
-            document.getElementById('profil-social-container').innerHTML = profilSocialHTML;
 
             document.getElementById('display-harga').innerText = harga;
-            const dashCard = document.getElementById('dash-harga-card');
-            if(dashCard) dashCard.innerText = harga;
+            if(document.getElementById('dash-harga-card')) document.getElementById('dash-harga-card').innerText = harga;
 
             document.getElementById('display-rules-content').innerHTML = remoteSettings.rules || DEFAULT_RULES;
             document.getElementById('notice-blue-text').innerHTML = remoteSettings.noticeBlue || DEFAULT_NOTICE_BLUE;
@@ -1345,11 +1074,11 @@
 
             if (alertBox) {
                 if (status === 'tutup') {
-                    alertBox.innerHTML = `<div class="notice-box notice-red"><i data-lucide="alert-circle" style="width: 18px; flex-shrink: 0;"></i><div><strong>Storan Ditutup!</strong><br>${pesan}</div></div>`;
+                    alertBox.innerHTML = `<div class="notice-box notice-red"><i data-lucide="alert-circle" style="width: 18px;"></i><div><strong>Storan Ditutup!</strong><br>${pesan}</div></div>`;
                     if (textareaInput) textareaInput.disabled = true;
                     if (btnKirim) { btnKirim.disabled = true; btnKirim.style.opacity = '0.5'; }
                 } else {
-                    alertBox.innerHTML = `<div class="notice-box notice-yellow"><i data-lucide="check-circle" style="width: 18px; flex-shrink: 0;"></i><div><strong>Storan Dibuka</strong><br>Silakan masukkan daftar Gmail.</div></div>`;
+                    alertBox.innerHTML = `<div class="notice-box notice-yellow"><i data-lucide="check-circle" style="width: 18px;"></i><div><strong>Storan Dibuka</strong><br>Silakan masukkan daftar Gmail sesuai format rules.</div></div>`;
                     if (textareaInput) textareaInput.disabled = false;
                     if (btnKirim) { btnKirim.disabled = false; btnKirim.style.opacity = '1'; }
                 }
@@ -1357,7 +1086,6 @@
 
             const storan = getStoran();
             let myStoran = currentUser === 'admin' ? storan : storan.filter(s => s.user === currentUser);
-            
             let d = myStoran.filter(s => s.status === 'Diterima').length;
             let p = myStoran.filter(s => s.status === 'Pending').length;
             let t = myStoran.filter(s => s.status === 'Ditolak').length;
@@ -1368,7 +1096,6 @@
 
             let hargaNum = parseInt(harga.replace(/[^0-9]/g, '')) || 4700;
             let totalSaldoStoran = d * hargaNum;
-
             let totalBonusRef = 0;
             if(currentUser !== 'admin' && currentUser) {
                 let users = getUsers();
@@ -1377,8 +1104,13 @@
             }
 
             let totalSaldoKeseluruhan = totalSaldoStoran + totalBonusRef;
-            if(document.getElementById('dash-balance')) document.getElementById('dash-balance').innerText = 'Rp' + totalSaldoKeseluruhan.toLocaleString('id-ID');
-            if(document.getElementById('user-saldo-display')) document.getElementById('user-saldo-display').innerText = 'Rp' + totalSaldoKeseluruhan.toLocaleString('id-ID');
+            const tarikList = getTarikList();
+            let myActiveTarik = tarikList.filter(item => item.user === currentUser && (item.status === 'Pending' || item.status === 'Berhasil'));
+            let totalTarikDiajukan = myActiveTarik.reduce((sum, item) => sum + item.nominal, 0);
+            let saldoRealFinal = Math.max(0, totalSaldoKeseluruhan - totalTarikDiajukan);
+
+            if(document.getElementById('dash-balance')) document.getElementById('dash-balance').innerText = 'Rp' + saldoRealFinal.toLocaleString('id-ID');
+            if(document.getElementById('user-saldo-display')) document.getElementById('user-saldo-display').innerText = 'Rp' + saldoRealFinal.toLocaleString('id-ID');
 
             lucide.createIcons();
         }
@@ -1396,6 +1128,7 @@
             document.getElementById('line-count').innerText = lines.length;
         }
 
+        // SISTEM VALIDASI FORMAT, DUPLIKASI, & CEK SESUAI RULES
         function processSetor() {
             const text = document.getElementById('setor-input').value.trim();
             if (!text) {
@@ -1403,52 +1136,99 @@
                 return;
             }
             const lines = text.split('\n').filter(l => l.trim() !== '');
+            
+            // Ambil data storan keseluruhan untuk memeriksa apakah Gmail sudah pernah disetor sebelumnya
+            const existingStoran = getStoran();
+            let existingEmailsSet = new Set(existingStoran.map(s => s.gmail.split('|')[0].trim().toLowerCase()));
 
-            lines.forEach(line => {
-                let uniqueId = 'storan_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+            for (let i = 0; i < lines.length; i++) {
+                let line = lines[i].trim();
+
+                // Validasi: Harus mengandung karakter pemisah '|'
+                if (!line.includes('|')) {
+                    alert(`Format baris ke-${i + 1} tidak sesuai rules!\nContoh format yang benar: email@gmail.com|password\n\nSilakan tulis ulang/perbaiki formatnya terlebih dahulu.`);
+                    return;
+                }
+
+                let parts = line.split('|');
+                let email = parts[0].trim().toLowerCase();
+                let password = parts[1].trim();
+
+                let emailRegex = /^[a-z0-9._%+-]+@gmail\.com$/;
+                
+                // Validasi: Format email valid, password wajib 'sgsg1122', atau email sudah pernah disetor
+                if (!emailRegex.test(email) || password !== "sgsg1122" || existingEmailsSet.has(email)) {
+                    alert(`Baris ke-${i + 1} ("${line}") tidak sesuai dengan rules!\nPastikan format email valid @gmail.com, password wajib sgsg1122, dan belum pernah disetor.\n\nSilakan tulis ulang/perbaiki formatnya terlebih dahulu.`);
+                    return;
+                }
+
+                existingEmailsSet.add(email);
+            }
+
+            // Jika semua baris valid sesuai rules, kirim storan
+            lines.forEach((line, index) => {
+                let uniqueId = 'storan_' + Date.now() + '_' + index + '_' + Math.floor(Math.random() * 1000);
                 let newStoranItem = {
                     id: uniqueId,
                     user: currentUser || 'user@gmail.com',
                     gmail: line,
-                    status: 'Pending',
+                    status: 'Diterima', 
                     time: new Date().toLocaleDateString()
                 };
                 db.ref('storan/' + uniqueId).set(newStoranItem);
             });
 
-            alert('Setoran berhasil dikirim ke server dan menunggu verifikasi Admin!');
+            alert(`Berhasil! Seluruh data (${lines.length} baris) sesuai rules dan telah dikirim.`);
             document.getElementById('setor-input').value = '';
             countLines();
             navigateTo('view-riwayat');
         }
 
+        // SISTEM PENARIKAN OTOMATIS (AUTO-ACC) SESUAI ID & PENDAPATAN VALID (STORAN DITERIMA / REFERRAL ASLI)
         function processTarikDana() {
             const nomor = document.getElementById('user-dana-input').value.trim();
             const nominal = parseInt(document.getElementById('user-nominal-input').value);
 
-            if (!nomor) {
-                alert('Masukkan nomor akun tujuan e-wallet!');
-                return;
-            }
-            if (!nominal || nominal < 10000) {
-                alert('Minimal pencairan dana adalah Rp10.000!');
+            if (!nomor || nomor.length < 9) { alert('Masukkan nomor akun tujuan e-wallet yang valid!'); return; }
+            if (!nominal || isNaN(nominal) || nominal < 10000) { alert('Minimal pencairan dana adalah Rp10.000!'); return; }
+
+            const storan = getStoran();
+            let myStoran = storan.filter(s => s.user === currentUser);
+            let d = myStoran.filter(s => s.status === 'Diterima').length;
+            let hargaStr = remoteSettings.harga || 'Rp4.700';
+            let hargaNum = parseInt(hargaStr.replace(/[^0-9]/g, '')) || 4700;
+            let totalSaldoStoran = d * hargaNum;
+
+            let totalBonusRef = 0;
+            let users = getUsers();
+            let foundUser = users.find(u => u.email === currentUser);
+            if(foundUser) totalBonusRef = foundUser.bonusReferral || 0;
+
+            let totalPendapatanUser = totalSaldoStoran + totalBonusRef;
+            const tarikList = getTarikList();
+            let myTarik = tarikList.filter(t => t.user === currentUser && (t.status === 'Pending' || t.status === 'Berhasil'));
+            let sisaSaldoReal = totalPendapatanUser - myTarik.reduce((sum, item) => sum + item.nominal, 0);
+
+            if (nominal > sisaSaldoReal) {
+                alert(`Penarikan gagal! Melebihi saldo pendapatan valid Anda (Sisa: Rp${sisaSaldoReal.toLocaleString('id-ID')}).`);
                 return;
             }
 
             let uniqueId = 'tarik_' + Date.now();
-            let tarikItem = {
-                id: uniqueId,
-                user: currentUser || 'user',
-                wallet: selectedWallet,
-                nomor: nomor,
-                nominal: nominal,
-                status: 'Pending',
-                time: new Date().toLocaleDateString()
-            };
+            let nuyulCheck = foundUser ? detectNuyul(foundUser, users) : { isNuyul: false };
 
-            db.ref('tarik_dana/' + uniqueId).set(tarikItem);
+            let statusWd = (!nuyulCheck.isNuyul && nominal <= sisaSaldoReal) ? 'Berhasil' : 'Pending';
 
-            alert(`Permintaan tarik saldo sebesar Rp${nominal.toLocaleString('id-ID')} ke ${selectedWallet} (${nomor}) berhasil diajukan!`);
+            db.ref('tarik_dana/' + uniqueId).set({
+                id: uniqueId, user: currentUser || 'user', wallet: selectedWallet, nomor: nomor, nominal: nominal, status: statusWd, time: new Date().toLocaleDateString()
+            });
+
+            if(statusWd === 'Berhasil') {
+                alert(`Penarikan dana Rp${nominal.toLocaleString('id-ID')} berhasil diverifikasi ID Anda dan langsung di-ACC (Berhasil)!`);
+            } else {
+                alert(`Permintaan penarikan dana Rp${nominal.toLocaleString('id-ID')} diajukan dalam status Pending untuk verifikasi admin.`);
+            }
+
             document.getElementById('user-dana-input').value = '';
             document.getElementById('user-nominal-input').value = '';
             renderTarikRiwayat();
@@ -1459,19 +1239,13 @@
             let myList = currentUser === 'admin' ? tarikList : tarikList.filter(t => t.user === currentUser);
             const container = document.getElementById('riwayat-penarikan-list');
 
-            if (myList.length === 0) {
-                container.innerHTML = `Belum ada pengajuan penarikan dana.`;
-                return;
-            }
+            if (myList.length === 0) { container.innerHTML = `Belum ada pengajuan penarikan dana.`; return; }
 
             let html = '';
             myList.slice().reverse().forEach(item => {
                 let color = item.status === 'Berhasil' ? 'var(--success)' : (item.status === 'Ditolak' ? 'var(--danger)' : 'var(--warning)');
                 html += `<div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--border);">
-                    <div>
-                        <strong>${item.wallet} (${item.nomor})</strong><br>
-                        <span>Rp${item.nominal.toLocaleString('id-ID')} • ${item.time}</span>
-                    </div>
+                    <div><strong>${item.wallet} (${item.nomor})</strong><br><span>Rp${item.nominal.toLocaleString('id-ID')} • ${item.time}</span></div>
                     <span style="font-weight: 700; color: ${color};">${item.status}</span>
                 </div>`;
             });
@@ -1503,22 +1277,10 @@
 
         function getAIResponse(msg) {
             let m = msg.toLowerCase();
-
-            if (m.includes('tolak') || m.includes('ditolak')) {
-                return "Storan Gmail bisa ditolak karena: 1) Akun bukan Gmail baru/fresh, 2) Format angka atau password salah (wajib <code>finainga</code>), atau 3) Melebihi batas limit harian. Pastikan cek riwayat dan sesuaikan rules ya!";
-            } else if (m.includes('saldo') || m.includes('tarik') || m.includes('minimal')) {
-                return "Minimal pencairan saldo adalah Rp10.000. Saldo akan otomatis bertambah jika status Gmail kamu sudah <b>Diterima</b> oleh Admin, atau jika kamu mengajak teman lewat link referral (bonus Rp5.000)!";
-            } else if (m.includes('referral') || m.includes('refeal') || m.includes('teman')) {
-                return "Kamu bisa dapat bonus Rp5.000 per teman yang mendaftar menggunakan link referral kamu! Cek link-mu di menu Profil ya.";
-            } else if (m.includes('password') || m.includes('sandi') || m.includes('pass')) {
-                return "Password wajib untuk setiap akun Gmail yang disetor adalah: <code style='background:#f1f5f9; padding:2px 4px; border-radius:4px; font-weight:bold;'>finainga</code>.";
-            } else if (m.includes('kapan') || m.includes('masuk') || m.includes('proses')) {
-                return "Proses verifikasi storan biasanya memakan waktu beberapa menit hingga maksimal 1x24 jam.";
-            } else if (m.includes('halo') || m.includes('hai')) {
-                return "Halo juga! Ada yang bisa saya bantu terkait setoran Gmail atau program referral hari ini? 😊";
-            } else {
-                return "Silakan baca menu Rules atau hubungi Admin via tombol Telegram/WhatsApp di menu Profil jika butuh bantuan lebih lanjut!";
-            }
+            if (m.includes('tolak')) return "Jika format tidak sesuai rules atau password bukan 'sgsg1122', sistem akan meminta Anda menulis ulang formatnya sampai benar sebelum dikirim.";
+            if (m.includes('saldo')) return "Minimal penarikan saldo adalah Rp10.000 dan langsung di-ACC otomatis jika ID serta saldo valid.";
+            if (m.includes('password')) return "Password wajib diisi menggunakan 'sgsg1122' sesuai ketentuan rules admin.";
+            return "Silakan cek menu Rules atau hubungi Admin via tombol Telegram/WhatsApp di menu Profil.";
         }
 
         function escapeHtml(text) {
@@ -1535,18 +1297,49 @@
                 return;
             }
 
-            let html = '';
+            let groupedByDate = {};
             myStoran.slice().reverse().forEach(item => {
-                let color = item.status === 'Diterima' ? 'var(--success)' : (item.status === 'Ditolak' ? 'var(--danger)' : 'var(--warning)');
-                html += `<div class="info-box-card" style="display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <strong style="font-size: 0.85rem; display: block; font-family: monospace;">${item.gmail}</strong>
-                        <span style="font-size: 0.7rem; color: var(--text-sub);">${item.time} • User: ${item.user}</span>
-                    </div>
-                    <span style="font-size: 0.75rem; font-weight: 700; color: ${color};">${item.status}</span>
-                </div>`;
+                let tgl = item.time || 'Tanggal Tidak Diketahui';
+                if (!groupedByDate[tgl]) groupedByDate[tgl] = [];
+                groupedByDate[tgl].push(item);
             });
+
+            let html = '';
+            for (let tgl in groupedByDate) {
+                let listPerTanggal = groupedByDate[tgl];
+                html += `<div class="info-box-card" style="margin-bottom: 16px; border: 1px solid var(--border);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border);">
+                        <span style="font-weight: 800; font-size: 0.85rem; color: var(--primary);">📅 ${escapeHtml(tgl)}</span>
+                        <button class="btn-primary" style="width: auto; padding: 4px 10px; font-size: 0.7rem; background: var(--success);" onclick="copyByDate('${tgl}')">Salin Tanggal Ini</button>
+                    </div>
+                    <div>`;
+
+                listPerTanggal.forEach(item => {
+                    let color = item.status === 'Diterima' ? 'var(--success)' : (item.status === 'Ditolak' ? 'var(--danger)' : 'var(--warning)');
+                    html += `<div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px dashed var(--border);">
+                        <div><strong style="font-size: 0.82rem; font-family: monospace;">${escapeHtml(item.gmail)}</strong><br><span style="font-size: 0.68rem; color: var(--text-sub);">User: ${escapeHtml(item.user)}</span></div>
+                        <span style="font-size: 0.72rem; font-weight: 700; color: ${color};">${item.status}</span>
+                    </div>`;
+                });
+                html += `</div></div>`;
+            }
             container.innerHTML = html;
+            lucide.createIcons();
+        }
+
+        function copyByDate(targetDate) {
+            const storan = getStoran();
+            let myStoran = currentUser === 'admin' ? storan : storan.filter(s => s.user === currentUser);
+            let filtered = myStoran.filter(item => item.time === targetDate);
+            if (filtered.length === 0) return;
+            navigator.clipboard.writeText(filtered.map(i => i.gmail).join('\n')).then(() => alert(`Berhasil menyalin ${filtered.length} data tanggal ${targetDate}!`));
+        }
+
+        function copyAllRiwayatGmail() {
+            const storan = getStoran();
+            let myStoran = currentUser === 'admin' ? storan : storan.filter(s => s.user === currentUser);
+            if (myStoran.length === 0) return;
+            navigator.clipboard.writeText(myStoran.map(i => i.gmail).join('\n')).then(() => alert('Berhasil menyalin seluruh data Gmail!'));
         }
 
         function renderAdminData() {
@@ -1557,92 +1350,50 @@
             users.forEach(u => {
                 let isBanned = u.isBanned || false;
                 let statusBadge = isBanned ? '<span style="color:var(--danger); font-weight:bold;">(BANNED)</span>' : '<span style="color:var(--success); font-weight:bold;">(Aktif)</span>';
-                let banButtonText = isBanned ? 'Unban' : 'Ban';
-                let banButtonColor = isBanned ? 'var(--success)' : 'var(--danger)';
+                let nuyulCheck = detectNuyul(u, users);
 
-                userHtml += `<tr>
-                    <td>${u.name} ${statusBadge}</td>
-                    <td>${u.email}</td>
-                    <td><b>${u.role}</b><br><span style="font-size:0.65rem; color:var(--text-sub);">Ref: ${u.refCode || '-'} | Bonus: Rp${(u.bonusReferral||0).toLocaleString('id-ID')}</span></td>
+                userHtml += `<tr class="user-row">
+                    <td>${escapeHtml(u.name)} ${statusBadge}</td>
+                    <td>${escapeHtml(u.email)}</td>
+                    <td style="font-family:monospace; font-size:0.7rem;">${escapeHtml(u.ipAddress || '-')}</td>
+                    <td><b>Rp${(u.bonusReferral || 0).toLocaleString('id-ID')}</b></td>
                     <td>
-                        <button onclick="toggleBanUser('${u.email}', ${!isBanned})" style="background:${banButtonColor}; color:white; border:none; padding:4px 8px; border-radius:4px; font-size:0.65rem; cursor:pointer; margin-bottom:2px;">${banButtonText}</button>
-                        ${u.email !== 'admin' ? `<button onclick="deleteUser('${u.email}')" style="background:#64748b; color:white; border:none; padding:4px 8px; border-radius:4px; font-size:0.65rem; cursor:pointer;">Hapus</button>` : ''}
+                        <button onclick="toggleBanUser('${u.email}', ${!isBanned})" style="background:${isBanned?'var(--success)':'var(--danger)'}; color:white; border:none; padding:4px 8px; border-radius:4px; font-size:0.65rem; cursor:pointer;">${isBanned?'Unban':'Ban'}</button>
                     </td>
                 </tr>`;
             });
             document.getElementById('admin-user-list-body').innerHTML = userHtml;
 
-            // RENDER TABEL KELOLA PENARIKAN DANA (ACC / TOLAK)
-            const tarikList = getTarikList();
-            let tarikHtml = '';
-            if (tarikList.length === 0) {
-                tarikHtml = `<tr><td colspan="5" style="text-align:center; color:var(--text-sub);">Belum ada permintaan penarikan saldo</td></tr>`;
-            } else {
-                tarikList.slice().reverse().forEach(item => {
-                    let statusColor = item.status === 'Berhasil' ? 'var(--success)' : (item.status === 'Ditolak' ? 'var(--danger)' : 'var(--warning)');
-                    tarikHtml += `<tr>
-                        <td>${item.user}</td>
-                        <td><b>${item.wallet}</b><br>${item.nomor}</td>
-                        <td>Rp${item.nominal.toLocaleString('id-ID')}</td>
-                        <td><b style="color: ${statusColor};">${item.status}</b></td>
-                        <td>
-                            <button onclick="updateTarikStatus('${item.id}', 'Berhasil')" style="background:var(--success); color:white; border:none; padding:3px 6px; border-radius:4px; font-size:0.65rem; cursor:pointer; margin-bottom:2px;">ACC</button>
-                            <button onclick="updateTarikStatus('${item.id}', 'Ditolak')" style="background:var(--danger); color:white; border:none; padding:3px 6px; border-radius:4px; font-size:0.65rem; cursor:pointer;">Tolak</button>
-                        </td>
-                    </tr>`;
-                });
-            }
-            document.getElementById('admin-tarik-list-body').innerHTML = tarikHtml;
-
             const storan = getStoran();
             let storanHtml = '';
-            if (storan.length === 0) {
-                storanHtml = `<tr><td colspan="4" style="text-align:center; color:var(--text-sub);">Belum ada storan masuk</td></tr>`;
-            } else {
-                storan.slice().reverse().forEach(item => {
-                    storanHtml += `<tr>
-                        <td>${item.user}</td>
-                        <td style="font-family:monospace;">${item.gmail}</td>
-                        <td><b>${item.status}</b></td>
-                        <td>
-                            <button onclick="updateStoranStatus('${item.id}', 'Diterima')" style="background:var(--success); color:white; border:none; padding:3px 6px; border-radius:4px; font-size:0.65rem; cursor:pointer;">Terima</button>
-                            <button onclick="updateStoranStatus('${item.id}', 'Ditolak')" style="background:var(--danger); color:white; border:none; padding:3px 6px; border-radius:4px; font-size:0.65rem; cursor:pointer;">Tolak</button>
-                        </td>
-                    </tr>`;
-                });
-            }
+            storan.slice().reverse().forEach(item => {
+                storanHtml += `<tr>
+                    <td>${escapeHtml(item.user)}</td>
+                    <td style="font-family:monospace;">${escapeHtml(item.gmail)}</td>
+                    <td><b>${item.status}</b></td>
+                    <td>
+                        <button onclick="updateStoranStatus('${item.id}', 'Diterima')" style="background:var(--success); color:white; border:none; padding:3px 6px; border-radius:4px; font-size:0.65rem;">Terima</button>
+                        <button onclick="updateStoranStatus('${item.id}', 'Ditolak')" style="background:var(--danger); color:white; border:none; padding:3px 6px; border-radius:4px; font-size:0.65rem;">Tolak</button>
+                    </td>
+                </tr>`;
+            });
             document.getElementById('admin-storan-list-body').innerHTML = storanHtml;
             lucide.createIcons();
         }
 
-        // FUNGSI UNTUK BAN / UNBAN USER
+        function filterUser() {
+            const keyword = document.getElementById('searchUser').value.toLowerCase();
+            document.querySelectorAll('.user-row').forEach(row => {
+                row.style.display = row.textContent.toLowerCase().includes(keyword) ? "" : "none";
+            });
+        }
+
         function toggleBanUser(email, banStatus) {
-            let key = email.replace(/[.#$\/\[\]]/g, '_');
-            db.ref('users/' + key).update({ isBanned: banStatus });
-            alert(banStatus ? `User ${email} berhasil diblokir (banned).` : `User ${email} berhasil di-unban.`);
+            db.ref('users/' + email.replace(/[\.\#\$\[\]]/g, '_')).update({ isBanned: banStatus });
         }
 
-        // FUNGSI UNTUK MENGHAPUS USER DARI DATABASE
-        function deleteUser(email) {
-            if(confirm(`Yakin ingin menghapus permanen akun ${email}?`)) {
-                let key = email.replace(/[.#$\/\[\]]/g, '_');
-                db.ref('users/' + key).remove();
-                alert(`Akun ${email} berhasil dihapus.`);
-            }
-        }
-
-        function updateStoranStatus(id, newStatus) {
-            db.ref('storan/' + id).update({ status: newStatus });
-        }
-
-        function updateTarikStatus(id, newStatus) {
-            db.ref('tarik_dana/' + id).update({ status: newStatus });
-        }
-
-        function appLogout() {
-            currentUser = null;
-            navigateTo('view-auth');
-        }
+        function updateStoranStatus(id, newStatus) { db.ref('storan/' + id).update({ status: newStatus }); }
+        function appLogout() { currentUser = null; navigateTo('view-auth'); }
     </script>
 </body>
 </html>
