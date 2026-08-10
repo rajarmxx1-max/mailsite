@@ -1,3 +1,4 @@
+// Deposit, withdrawal, history and support module
 function selectWalletProvider(provider) {
             selectedWallet = provider;
             document.querySelectorAll('.provider-btn').forEach(btn => btn.classList.remove('active'));
@@ -135,44 +136,35 @@ function renderTarikRiwayat() {
             container.innerHTML = html;
         }
 
-function renderUserRiwayat() {
-            const storan = getStoran();
-            let myStoran = currentUser === 'admin' ? storan : storan.filter(s => s.user === currentUser);
-            const container = document.getElementById('riwayat-list-container');
+function sendSuggestion(text) {
+            document.getElementById('chat-input-field').value = text;
+            sendUserChatMessage();
+        }
 
-            if (myStoran.length === 0) {
-                container.innerHTML = `<div class="info-box-card" style="text-align: center; color: var(--text-sub); padding: 30px 10px;">Belum ada setoran.</div>`;
-                return;
-            }
+function sendUserChatMessage() {
+            const inputField = document.getElementById('chat-input-field');
+            const message = inputField.value.trim();
+            if (!message) return;
 
-            let groupedByDate = {};
-            myStoran.slice().reverse().forEach(item => {
-                let tgl = item.time || 'Tanggal Tidak Diketahui';
-                if (!groupedByDate[tgl]) groupedByDate[tgl] = [];
-                groupedByDate[tgl].push(item);
-            });
+            const box = document.getElementById('chat-messages-box');
+            box.innerHTML += `<div class="chat-bubble user">${escapeHtml(message)}</div>`;
+            inputField.value = '';
+            box.scrollTop = box.scrollHeight;
 
-            let html = '';
-            for (let tgl in groupedByDate) {
-                let listPerTanggal = groupedByDate[tgl];
-                html += `<div class="info-box-card" style="margin-bottom: 16px; border: 1px solid var(--border);">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border);">
-                        <span style="font-weight: 800; font-size: 0.85rem; color: var(--primary);">📅 ${escapeHtml(tgl)}</span>
-                        <button class="btn-primary" style="width: auto; padding: 4px 10px; font-size: 0.7rem; background: var(--success);" onclick="copyByDate('${tgl}')">Salin Tanggal Ini</button>
-                    </div>
-                    <div>`;
+            setTimeout(() => {
+                let aiReply = getAIResponse(message);
+                box.innerHTML += `<div class="chat-bubble ai">${aiReply}</div>`;
+                box.scrollTop = box.scrollHeight;
+                lucide.createIcons();
+            }, 600);
+        }
 
-                listPerTanggal.forEach(item => {
-                    let color = item.status === 'Diterima' ? 'var(--success)' : (item.status === 'Ditolak' ? 'var(--danger)' : 'var(--warning)');
-                    html += `<div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px dashed var(--border);">
-                        <div><strong style="font-size: 0.82rem; font-family: monospace;">${escapeHtml(item.gmail)}</strong><br><span style="font-size: 0.68rem; color: var(--text-sub);">User: ${escapeHtml(item.user)}</span></div>
-                        <span style="font-size: 0.72rem; font-weight: 700; color: ${color};">${item.status}</span>
-                    </div>`;
-                });
-                html += `</div></div>`;
-            }
-            container.innerHTML = html;
-            lucide.createIcons();
+function getAIResponse(msg) {
+            let m = msg.toLowerCase();
+            if (m.includes('tolak')) return "Jika format tidak sesuai rules atau password bukan 'sgsg1122', sistem akan meminta Anda menulis ulang formatnya sampai benar sebelum dikirim.";
+            if (m.includes('saldo')) return "Minimal penarikan saldo adalah Rp10.000 dan langsung di-ACC otomatis jika ID serta saldo valid.";
+            if (m.includes('password')) return "Password wajib diisi menggunakan 'sgsg1122' sesuai ketentuan rules admin.";
+            return "Silakan cek menu Rules atau hubungi Admin via tombol Telegram/WhatsApp di menu Profil.";
         }
 
 function copyByDate(targetDate) {
